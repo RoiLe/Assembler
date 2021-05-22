@@ -1,0 +1,26 @@
+the process of the code 
+
+main : get assembly file arguments (1-3) ---> 
+if (there is an errors)
+{continue to the next file.}
+else
+{continue the file to the output processing.}
+
+
+theprogram() func: get the file from the main
+1. send the file to checkFileName() func
+(that return if all the erros that could be in the name of the file )
+
+- exit from the file if not okay. 
+  
+2. send the file and the empty symbole table to firstPass() func
+(that pass on the file and keeps in table the correct values [by course definition] )
+
+call to other functions:
+- checks which input is it and if the input is okay
+- convert to binary 
+- create the instruction line or prompt line and put them in the right place in the image
+- create a symboles table  
+
+3. send the file and the symbole table to secondPass() func
+(that pass on the file and fills in table the values that the firstPass func didn't)
