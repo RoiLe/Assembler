@@ -1,5 +1,7 @@
 /*- קובץ header הצהרות על פונקציות שמשתמשים בהם במהלך כל התוכנית (registers,opcode,instructions, IC&DC, symbol-table ודומיהם)*/
-
+typedef enum success{
+	failed = 0, succesed = 1
+}suc;
 
 typedef enum booleans {
 	FALSE = 0, TRUE = 1
