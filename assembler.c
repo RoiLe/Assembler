@@ -3,16 +3,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "global.h"
+
 
 int theProgram(char*);
 
 int main(int argc, char *argv[]){
-	int i = 0;
-	if(!theProgram(argv[i])) 
+	int i;
+        bool correctFile = TRUE;  
+
+	for(i = 1; 0 < argc; i++) 
 	{
-	/*continue to the next arg*/
+		if ()	    /*continue to the next arg*/
 	}  
-	else
+	
 
 
 return 0;
