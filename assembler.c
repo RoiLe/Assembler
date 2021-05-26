@@ -6,15 +6,18 @@
 #include "global.h"
 
 
-int theProgram(char*);
+
+int proccessProgram(char*);
 
 int main(int argc, char *argv[]){
-	int i;
-        bool correctFile = TRUE;  
-
+	int exeptions;	
+	int i;  
+	/*if (argc == 1)--> exit from the program*/
 	for(i = 1; 0 < argc; i++) 
 	{
-		if ()	    /*continue to the next arg*/
+		exeptions = proccessProgram(argv[i]);    /*the proccess done in succussefuly.*/
+		printErrors(exeptions);
+		i++;		
 	}  
 	
 
@@ -23,10 +26,45 @@ return 0;
 }
 
 
-int theProgram(char*){
+int proccessProgram(char* file)
+{
+	int ic = IC, dc = DC, c;
+	FILE *assemblyCode;
+	
+	/*checks the file name*/
+	int nameFlag = checkNameFile(file);
+	if(nameFlag == 1)
+	{
+		assemblyCode = fopen(file, "r");
+	}
+	else
+	{
+		return NAME_ERROR;
+	}		
+   
+	/*firstPass*/
+	while(assemblyCode != NULL) 
+	{
+		firstpass(assemblyCode, symboleTable, dataImage);     		
+   
+   	}
+   	fclose(assemblyCode);
+	
+	/*secondPass*/
+	while(/*the table is didnt done*/)
+	{
+		secondPass(symboleTable, dataImage);
+	}
+
+	outPut(dataImage);
+	return 0;
+}/*end of proccessProgram()*/
 
 
 
 
 
-}
+
+
+
+
