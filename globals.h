@@ -1,23 +1,30 @@
 /*- קובץ header הצהרות על פונקציות שמשתמשים בהם במהלך כל התוכנית (registers,opcode,instructions, IC&DC, symbol-table ודומיהם)*/
 #define IC 100
-#define DC 0
+#define DC 0	
+#define NEXT_ADRESS
+#define LINE_MAX_LENGTH 80
 
-typedef enum success{
-	failed = 0, succesed = 1
-}suc;
 
 typedef enum booleans {
 	FALSE = 0, TRUE = 1
 } bool;
 
 typedef enum errors{
-	NAME_ERROR = 1;
-
-
-
+	INPUT_ERROR = -1,
+	CORRECT = 0,
+	NAME_ERROR = 1,
+	DONT_EXIST_FILE_ERROR = 2, 
+	TOO_LONG_LINE_COMMAND_ERROR = 3
 }err;
 
-typedef enum registers {
+enum TypeOfSentence{
+	EMPTY_LINE = 1,
+	NOTE_LINE,
+	INSTRUCTION_LINE,
+	GUIDANCE_LINE 
+};
+
+/*typedef enum registers {
 	$0 = 0,
 	$1,
 	$2,
@@ -49,10 +56,24 @@ typedef enum registers {
 	$28,
 	$29,
 	$30,
-	$31,
+	$31
 
-} reg;
+} reg;*/
 
+
+typedef struct symboleTable{
+	char * symbol;
+	int value;
+	char *attribute;
+
+}symTab;
+
+typedef struct dataImage{
+	int *adress;
+	char *sourceCode;
+	char machineCode[32];
+	struct dataImage *nextAdress;
+}dataImg;
 
 typedef struct instructionR{
 	unsigned int NONE: 5;
@@ -77,11 +98,7 @@ typedef struct instructionJ{
 	unsigned int opcode: 6;
 }J;
 
-typedef struct symboleTable{
-	char * symbol;
-	int value;
-	char *attribute;
-}symTab;
+
 
 
 
