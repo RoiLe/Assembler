@@ -1,4 +1,3 @@
-/*- קובץ Header המחזיק את כל ההגדרות הרלוונטיות לfirstpass.c*/
 #ifndef FIRSTPASS_H
 #define FIRSTPASS_H
 
