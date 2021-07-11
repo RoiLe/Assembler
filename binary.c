@@ -4,27 +4,16 @@
 #include "globals.h"
 #include "utils.h"
 #include "exeptions.h"
+#include "binary.h"
 
-/*
-	Converts from int to binary code.
-	return the binary code in string.
-*/
-void int_to_binary(char* machine_code, int curr, int num_of_byte);
+
 /*
 	Creates the structure of every line in integer
 	return the current R line in R_struct
 */
 R create_R_instruction(char *, char *, int, int);
-/*
-	Creates the structure of every line in integer
-	return the current I line in I_struct
-*/
-I create_I_instruction(char *, char *, int, int); 
-/*
-	Creates the structure of every line in integer
-	return the current J line in J_struct
-*/
-J create_J_instruction(char *key_word, char *operands, int curr_opcode);
+
+
 
 
 void instruction_binary_line(char *machineCode, char *key_word , char *operands)
@@ -40,7 +29,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 	
 	switch(type_of_key_word)/*call to the correct func depened the type*/
 	{
-		case R_LINE_LOGIC: case  R_LINE_COPY: 
+		case R_LINE_LOGIC: case R_LINE_COPY: 
 
 			/*create here the struct of R instruction.. */
 			curr_R_line = create_R_instruction(key_word, operands, curr_opcode, curr_funct);
@@ -52,7 +41,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 		case I_LINE_LOGIC: case I_LINE_BRANCH: case I_LINE_SORE_LOAD:
 
 			/*create_I_instruction(key_word, operands, type_of_key_word);*/
-			curr_I_line = create_I_instruction(key_word, operands, type_of_key_word, curr_opcode);
+			curr_I_line = create_I_instruction(key_word, operands, type_of_key_word, curr_opcode, off);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_I_line.size,WORD);
@@ -61,7 +50,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 		case J_LINE_SPECIAL:
 			
 			/*create_J_instruction(key_word, operands, type_of_key_word);*/
-			curr_J_line = create_J_instruction(key_word, operands, curr_opcode);
+			curr_J_line = create_J_instruction(key_word, operands, curr_opcode, off);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_J_line.size,WORD);
@@ -212,7 +201,7 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 }/*END create_R_instruction()*/
 
 
-I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode)
+I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed)
 {
 	/*declarations*/
 	I curr;
@@ -220,6 +209,7 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 	num_of_reg = 0, operands_counter = 0,  diff_to_int = 48;
 	unsigned int temp_immed = 0;
 
+	
 	/*add the correct opcode. */
 	curr.instruct.opcode = curr_opcode;
 
@@ -282,7 +272,7 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 			/*its a label*/
 			else if((operands[i] >= 'A' && operands[i] <= 'Z') || (operands[i] >= 'a' && operands[i] <= 'z'))
 			{
-				temp_immed = 0;
+				temp_immed = curr_immed;
 				i++;
 			}else{				
 				printf("ERROR - dont exist register.\n");
@@ -301,7 +291,7 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 
 }/*END create_I_instruction()*/
 
-J create_J_instruction(char *key_word, char *operands, int curr_opcode)
+J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress)
 {
 	J curr;		
 	int i, temp_reg = off, temp_address = 0, num_of_reg = 0;
@@ -327,12 +317,12 @@ J create_J_instruction(char *key_word, char *operands, int curr_opcode)
 
 		switch(curr_opcode)
 		{
-			case OP_JMP:case OP_LA:
-				temp_address = (temp_reg == on)?num_of_reg:off;
+			case OP_JMP:
+				temp_address = (temp_reg == on)? num_of_reg: adress;
 				break;
 
-			case OP_CALL:
-				temp_address = off;
+			case OP_LA:case OP_CALL:
+				temp_address = adress;
 				temp_reg = off;
 				break;
 	
