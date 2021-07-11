@@ -108,18 +108,18 @@ enum size_of_byte{
 	WORD = 32 	
 };
 
-typedef struct symbol_line{
+typedef struct symbol_line{ 
 	char symbol[LABEL_MAX_LENGTH];
-	long value;
-	char attribute[MAX_ARRTIBUTE_LENGTH]; 
+	long value; 
+	char attribute[MAX_ARRTIBUTE_LENGTH];     
 	struct symbol_line *next;
 }symLine;
 
-typedef struct dataImage *DI_ptr;
-typedef struct dataImage{
+typedef struct dataImage *DI_ptr;  
+typedef struct dataImage{ 
 	long adress;
-	char sourceCode[LINE_MAX_LENGTH];
-	char machineCode[MACHINE_CODE_LENGTH];
+	char sourceCode[LINE_MAX_LENGTH]; 
+	char machineCode[MACHINE_CODE_LENGTH]; 
 	DI_ptr next;
 }dataImg;
 
