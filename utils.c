@@ -71,12 +71,12 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
    	while (p != NULL)
     	{
         	array[i++] = p;
-       		p = strtok (NULL, " ");
+       		p = strtok (NULL, " ");/*fix to the correct devision' and fix all the sheets that caouse from is.*/
    	}
  	
 	i = first;
 
-	/*if its label.*/ 
+	/*if its label.*/  
 	if((array[i])[strlen(array[first])-1] == ':' && i == first) 
 	{
 		strcpy(label, array[i++]);
@@ -91,13 +91,13 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 	if(array[i])
 	{
 		strcpy(operands, array[i]);
-		operands[strlen(operands)] = '\0';
+		operands[strlen(operands) - 1] = '\0';
 	}
 
 	/*if there is a white space before ':' in label case.*/	
 	if(operands[first] == ':')/*fix : if there is a whitespace before colon.*/
 	{
-		printf("exeption whitespace before colon.\n");/*change to real exeption. */
+		printf("exeption white space before colon.\n");/*change to real exeption. */
 		/*delete all the values until now*/
 		key_word[0] = '\0';
 		operands[0] = '\0';
@@ -278,6 +278,24 @@ int to_ascii_list_operands(char* operands, int *the_list)
 }/*END to_ascii_list_operands()*/
 
 
+void get_last_field(char *operands, char* label)
+{
+	int i = 0, end_array = 0;
+	char *p = strtok (operands, ", \t\n");
+   	char *array[3];
+
+	/*the deviosion*/
+   	while (p != NULL)
+    	{
+        	array[i++] = p;
+       		p = strtok (NULL, ", \t\n");
+		end_array++;
+   	}/*end while loop*/	
+
+	strcpy(label, array[end_array - 1]);
+	label[strlen(label)] = '\0';
+
+}/*END get_last_field()*/
 
 
 
