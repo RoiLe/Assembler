@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -7,6 +6,7 @@
 #include "first_pass.h"
 #include "utils.h"
 #include "assembler.h"
+#include "second_pass.h"
 
 
 int main(int argc, char *argv[]){
@@ -33,21 +33,21 @@ return success;
 {
 	/*declarations*/
 	static long ic = IC, dc = DC;
-	FILE *assemblyCode = NULL;
-	int exeptions = CORRECT, currentNumberLine = 0;
+	FILE *assembly_code = NULL;
+	int exeptions = CORRECT, currentNumberLine = 0, typeOfSentence;
 	char label[LABEL_MAX_LENGTH], key_word[KEY_WORD_MAX_LENGTH], operands[LINE_MAX_LENGTH];
 	DI_ptr instruction_head = NULL, instruction_tail = NULL, p_instruction;
 	DI_ptr guidance_head = NULL, guidance_tail = NULL, p_guidance;
 
-	symLine *symbol_table_head = NULL, *symbol_table_tail = NULL, *p_symbol_table;
+	symLine *symbol_table_head = NULL, *symbol_table_tail = NULL, *p_symbol_table;	
 
 	/* checks the file name and open it if it's ok... */
 	exeptions = name_check_file(file);	
 	print_errors(exeptions, currentNumberLine);
 	if(exeptions == CORRECT)
 	{
-		assemblyCode = fopen(file, "r");/*open the file*/
-		if(!assemblyCode)
+		assembly_code = fopen(file, "r");/*open the file*/
+		if(!assembly_code)
 		{
 			print_errors(DONT_EXIST_FILE_ERROR, currentNumberLine) ;
 			return FAILED;
@@ -61,16 +61,17 @@ return success;
 
 
 	/*starting now the first pass... */
-	while(!feof(assemblyCode)) 
+	while(!feof(assembly_code)) 
 	{	
 		/*declarations*/
-		int typeOfSentence, guid_line_count;				
+		int guid_line_count;				
 		char *currLine = (char *)calloc(LINE_MAX_LENGTH, sizeof(char));
-
 		if(!currLine){print_errors(ALLOCATION_ERROR, currentNumberLine);}
+
+		
 		
 		/*read the current line and define the type.*/
-		fgets(currLine, LINE_MAX_LENGTH, assemblyCode);		
+		fgets(currLine, LINE_MAX_LENGTH, assembly_code);		
 		typeOfSentence = classification_of_sentence(currLine);
 
 		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)		
@@ -154,29 +155,60 @@ return success;
 		operands[0] = '\0';
 		key_word [0] = '\0';
 		
-   	}
+   	}/*END while(!feof(assembly_code)) loop */
    	
-   	fclose(assemblyCode);
+   	
 	if(exeptions != CORRECT){return FAILED;}	
 
 	/*order the adresses of the guidances lines after the instructions lines*/
 	connect_adresses(guidance_head, instruction_tail -> adress);
 
 	/*connect the data image (instruction and then guidances)*/
-	instruction_tail -> next = guidance_head;	
+	instruction_tail -> next = guidance_head;
+
+	/*print the first pass table*/	
+	printf("\tfirst pass table\n\n");
 	data_image_print(instruction_head);
 	symbol_table_print(symbol_table_head);
 	
+
 	/*
 		the first pass done!  if it's pass in success, 
 		we continue now to the second pass..!!     
-	*/	
-	
-	/*rewind(assemblerCode);
-	while(the table is didnt done)
+	*/
+	rewind(assembly_code);
+	/*read the line.*/		
+	while(!feof(assembly_code)) 
 	{
-		secondPass(symboleTable, dataImage);
-	}*/
+		char *currLine = (char *)calloc(LINE_MAX_LENGTH, sizeof(char));
+		if(!currLine){print_errors(ALLOCATION_ERROR, currentNumberLine);}		
+
+		fgets(currLine, LINE_MAX_LENGTH, assembly_code);		
+		typeOfSentence = classification_of_sentence(currLine);
+
+		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)/*if its not empty or note lines*/		
+		{
+			char temp_curr_line[LINE_MAX_LENGTH];
+			strcpy(temp_curr_line, currLine);
+	
+			get_commands(temp_curr_line, label, key_word, operands);/*fill the label, the key word and the data of the line.*/
+		
+			/*printf("current line: %s\tlabel: %s key_word: %s operands: %s\n",currLine, label, key_word, operands);*/			
+
+			if(typeOfSentence == GUIDANCE_LINE && get_guidance_type(key_word) == ENTRY)
+			{
+				add_entry_to_symbol_table(symbol_table_head, operands);
+			}else{
+				add_missed_values_to_data_image(instruction_head, symbol_table_head, key_word, operands, currLine);
+
+				
+			}
+						
+			
+			second_pass(instruction_head, symbol_table_head, currLine);
+		}
+		free(currLine);
+	}/*end of while loop*/
 	
 	
 	/*
@@ -188,8 +220,11 @@ return success;
 
 	/*outPut(dataImage);*/
 	
+	fclose(assembly_code);
 	
-	
+	printf("\tsecond pass table\n\n");
+	data_image_print(instruction_head);
+	symbol_table_print(symbol_table_head);
 	/*free some nodes*/
 	free_symbol_table_nodes(symbol_table_head);
 	free_data_image_nodes(instruction_head);
