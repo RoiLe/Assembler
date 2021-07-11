@@ -7,7 +7,7 @@
 /*
 	Creates the data image table. 
 	[adress ; source code ; machine code]
-	
+	 
 	The first part is the instruction lines.
 	The second part is the guidances lines.
 
