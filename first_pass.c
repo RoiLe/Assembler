@@ -97,17 +97,17 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 	{
 		case INSTRUCTION_LINE:
 		{ 
-			strcpy(curr_symbol_line -> attribute, "code ");
+			strcpy(curr_symbol_line -> attribute, "code");
 			break;
 		}
 		case GUIDANCE_LINE:
 		{ 
-			strcpy(curr_symbol_line -> attribute, "data ");
+			strcpy(curr_symbol_line -> attribute, "data");
 			break;
 		}
 		case EXTERN:
 		{ 
-			strcpy(curr_symbol_line -> attribute, "external ");
+			strcpy(curr_symbol_line -> attribute, "external");
 			break;
 		}
 	}/*end of switch*/
@@ -132,7 +132,7 @@ void connect_adresses(dataImg *guidance_table_ptr, long last_ic)
 void free_symbol_table_nodes(symLine *head_symbol_line) 
 {
 	/*Go through the whole line*/
-	while(head_symbol_line ->next != NULL)
+	while(head_symbol_line != NULL)
 	{
 		free(head_symbol_line);
 		head_symbol_line = head_symbol_line -> next; 
@@ -144,7 +144,7 @@ void free_symbol_table_nodes(symLine *head_symbol_line)
 void free_data_image_nodes(dataImg* head_data_image)
 {
 	/*Go through the whole line*/
-	while(head_data_image -> next != NULL)
+	while(head_data_image != NULL)
 	{
 		free(head_data_image);
 		head_data_image = head_data_image -> next; 
