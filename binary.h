@@ -43,6 +43,31 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 void guidance_binary_lines(char *machineCode,char *key_word, int data);
 
 
+/*
+	Creates the structure of every line in integer
+	return the current I line in I_struct
+*/
+I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed); 
+
+
+/*
+	Creates the structure of every line in integer
+	return the current J line in J_struct
+*/
+J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress);
+
+
+/*
+	Converts from int to binary code.
+	return the binary code in string.
+*/
+void int_to_binary(char* machine_code, int curr, int num_of_byte);
+
+
+
+
+
+
 
 
 #endif
