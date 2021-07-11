@@ -104,6 +104,27 @@ int get_guidance_type(char *key_word);
 	temp_num -> temporary number. 
 
 */
-int to_ascii_list_operands(char* operands, int *the_list); 
+int to_ascii_list_operands(char *operands, int *the_list); 
+
+
+
+
+
+/*
+
+
+
+
+*/
+void get_last_field(char *operands, char* label);
+
+
+
+
+
+
+
+
+
 
 #endif
