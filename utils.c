@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "globals.h" 
 #include "utils.h"
 
@@ -8,27 +9,29 @@
 int classification_of_sentence(char* curr_line)
 {
 	/*declarations*/
-	int empty_flag = off, guidance_flag = off;
+	int label_flag = off;
 	int i = 0;
- 	if(curr_line[0] == ';'){return NOTE_LINE;}
 
-	/*go through the whole line*/
-	while(i < strlen(curr_line))
+	/*check if there is a label*/
+	while(curr_line[i] != '\0')
 	{
-		if(curr_line[i] != '\t' || curr_line[i] != ' ')
-			{empty_flag = on;}
-
-		if(curr_line[i] == '.')
-			{guidance_flag = on;}
-		i++;	
-	}
+		if(curr_line[i] == ':'){label_flag = on;}
+		i++;
+	}/*end while loop */
+	/*printf("curr_lne; %s\t label flag = %d",curr_line, label_flag);*/
+	i = 0;
 	
-	if(empty_flag == off)
-		{return EMPTY_LINE;}
-	if(guidance_flag == on)
-		{return GUIDANCE_LINE;}
-	else
-		{return INSTRUCTION_LINE;}
+	if(label_flag == on){while(curr_line[i] != ':'){i++;}}	
+	if(curr_line[i] == ':'){i++;}
+
+	while(curr_line[i] == ' ' || curr_line[i] == '\t'){i++;}
+
+	if(curr_line[i] == '.'){return GUIDANCE_LINE;}
+	if(curr_line[i] == '\n'){return EMPTY_LINE;}
+	if(curr_line[i] == ';'){return NOTE_LINE;}
+
+	return INSTRUCTION_LINE;
+		
 }/*END classificationOfSentence()*/
 
 
@@ -63,48 +66,95 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 {
 	/*declarations*/
 	enum places {first = 0, second, third};
-	int i = 0;
-    	char *p = strtok (curr_line, " \t\n");
-   	char *array[3];
+	int i = 0, label_flag = off, temp_string_length = 0;
+	char temp_curr_line[LINE_MAX_LENGTH], temp_string[LINE_MAX_LENGTH];
+    	
+	strcpy(temp_curr_line, curr_line);
+	strcat(temp_curr_line, "\0");
 
-	/*the deviosion*/
-   	while (p != NULL)
-    	{
-        	array[i++] = p;
-       		p = strtok (NULL, " ");/*fix to the correct devision' and fix all the sheets that caouse from is.*/
-   	}
- 	
-	i = first;
+		/*--get the first field--*/
+		PRM_WHITE_SPACE_SKIP;
+		while(temp_curr_line[i] != ' ' && temp_curr_line[i] != '\n' && temp_curr_line[i] != '\t' && temp_curr_line[i] != ':')
+		{
+			temp_string[temp_string_length] = temp_curr_line[i];
+			temp_string_length++;
+			i++;		
+		}	
+		temp_string[temp_string_length] = '\0';		
+	
+			/*label scenario*/
+		if(temp_curr_line[i] == ':')
+		{
+			label_flag = on;
+			strcpy(label, temp_string);
+			temp_string[0] = '\0';
+			temp_string_length = 0;
+			i++;
+		}/*end label scenario*/
 
-	/*if its label.*/  
-	if((array[i])[strlen(array[first])-1] == ':' && i == first) 
-	{
-		strcpy(label, array[i++]);
-		label[strlen(label)-1] = '\0';
-	}else{label[0] = '\0';}/*there is no label*/
+			/*key word scenario*/
+		if(temp_curr_line[i] == ' ' || temp_curr_line[i] == '\n' || temp_curr_line[i] == '\t' )
+		{
+			strcpy(key_word, temp_string);
+			temp_string[0] = '\0';
+			temp_string_length = 0;
+		}/*end key word scenario*/
+		
+		/*--get the second field--*/
+		PRM_WHITE_SPACE_SKIP;	
+			/*key word scenario*/	
+		if (label_flag == on)
+		{			
+			while(temp_curr_line[i] != ' ' && temp_curr_line[i] != '\n' && temp_curr_line[i] != '\t' )
+			{
+				temp_string[temp_string_length] = temp_curr_line[i];
+				temp_string_length++;
+				i++;		
+			}
+			temp_string[temp_string_length] = '\0';
+			strcpy(key_word, temp_string);
 
-	/*next place in the array (key word)*/
-	strcpy(key_word, array[i++]);
-	key_word[strlen(key_word)] = '\0';
+			temp_string[0] = '\0';
+			temp_string_length = 0;
+			
+			/*operands scenario*/
+		}else{
+			while(temp_curr_line[i] != '\0')
+			{						
+				temp_string[temp_string_length] = temp_curr_line[i];
+				temp_string_length++;
+				i++;
+				PRM_WHITE_SPACE_SKIP;				
+			}
+			temp_string[temp_string_length] = '\0';
+			
+			strcpy(operands, temp_string);		
 
-	/*if there is operands*/
-	if(array[i])
-	{
-		strcpy(operands, array[i]);
-		operands[strlen(operands) - 1] = '\0';
-	}
+			temp_string[0] = '\0';
+			temp_string_length = 0;
+		}
 
-	/*if there is a white space before ':' in label case.*/	
-	if(operands[first] == ':')/*fix : if there is a whitespace before colon.*/
-	{
-		printf("exeption white space before colon.\n");/*change to real exeption. */
-		/*delete all the values until now*/
-		key_word[0] = '\0';
-		operands[0] = '\0';
-		label[0] = '\0';		
-	}
-	 
-}/*END get_key_word();*/
+		
+		/*--(if there is) get the third field--*/
+		
+			/*operands scenario*/
+		if (label_flag == on && strcmp("stop", key_word))
+		{
+			PRM_WHITE_SPACE_SKIP;
+			
+			while(temp_curr_line[i] != '\0')
+			{
+				temp_string[temp_string_length] = temp_curr_line[i];
+				temp_string_length++;
+				i++;
+				PRM_WHITE_SPACE_SKIP;		
+			}
+			
+			temp_string[temp_string_length] = '\0';	
+			strcpy(operands, temp_string);
+			temp_string[0] = '\0';		
+		}
+}/*END get_commands();*/
 
 
 
@@ -281,14 +331,14 @@ int to_ascii_list_operands(char* operands, int *the_list)
 void get_last_field(char *operands, char* label)
 {
 	int i = 0, end_array = 0;
-	char *p = strtok (operands, ", \t\n");
+	char *p = strtok (operands, " ,\t\n");
    	char *array[3];
 
 	/*the deviosion*/
    	while (p != NULL)
     	{
         	array[i++] = p;
-       		p = strtok (NULL, ", \t\n");
+       		p = strtok (NULL, " ,\t\n");
 		end_array++;
    	}/*end while loop*/	
 
