@@ -40,7 +40,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 					11111111111111111111111111110100
 	
 */
-void guidance_binary_lines(char *machineCode,char *key_word, int data);
+int guidance_binary_lines(char *machineCode,char *key_word, int data);
 
 
 /*
