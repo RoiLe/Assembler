@@ -65,7 +65,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 }/*END createInstruction()*/
 
 
-void guidance_binary_lines(char *machine_code,char *key_word, int data)
+int guidance_binary_lines(char *machine_code,char *key_word, int data)
 {
 	/*declarations*/
 	DB_CODE curr_db_asciz;
@@ -98,6 +98,7 @@ void guidance_binary_lines(char *machine_code,char *key_word, int data)
 
 	}/*end of switch*/
 
+	return type_of_guidance;
 }/*END create_guidance_code()*/
 
 void int_to_binary(char *machine_code, int curr, int num_of_byte)
