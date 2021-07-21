@@ -8,7 +8,6 @@
 #include "binary.h"
 
 
-
 int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLine, long adress, int typeOfSentence, char *key_word, char* operands)
 {	
 	
@@ -30,12 +29,12 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 			(*curr_line_ptr) = curr;
 			return NEXT_ADRESS;
 			break;
-		}
+		}/*end of instruction case*/
 		case GUIDANCE_LINE : 
 		{
 			/*declarations for guidances case*/
 			int *operands_list = (int*)malloc(LINE_MAX_LENGTH * sizeof(int)); 			
-			int i = 0, source_code_flag = on, lines_counter = 0; 
+			int i = 0, source_code_flag = on, lines_counter = 0, type_of_line = 0, half_byte = 2; 
 			long curr_adress = adress;			
 	
 			int num_of_operands =  to_ascii_list_operands(operands, operands_list); 
@@ -48,17 +47,33 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 				if(!temp){print_errors(ALLOCATION_ERROR, curr_adress);}
 				
 				/*add the machine code*/
-				guidance_binary_lines(temp -> machineCode, key_word, operands_list[i]);
+				type_of_line = guidance_binary_lines(temp -> machineCode, key_word, operands_list[i]);
 
 				/*add the source code*/
 				if(source_code_flag == on)/*if it's the first table's line of the guidances line*/
 				{
 					strcpy(temp -> sourceCode, currLine); 
-					source_code_flag = off;				
+					source_code_flag = off; 				
 				}
+
 				
 				/*add the adress*/
-				temp -> adress = curr_adress + lines_counter;
+				switch(type_of_line)
+				{
+				case DB:
+				case ASCIZ:
+					temp -> adress = curr_adress + lines_counter;
+					break;
+				case DH:
+					temp -> adress = curr_adress + lines_counter;
+					curr_adress += half_byte;
+					break;
+				case DW:
+					temp -> adress = curr_adress + lines_counter;
+					curr_adress += NEXT_ADRESS - 1;
+					break;
+				}/*end switch*/
+				
 
 				/*update the current line*/
 				if((*curr_line_ptr) == NULL)
@@ -73,10 +88,19 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 				}
 				lines_counter++;
 			}/*end of for loop*/
-
+			
+			switch(type_of_line)
+			{
+				case DH:
+					lines_counter++;
+					break;
+				case DW:
+					lines_counter += NEXT_ADRESS + half_byte;
+					break;					
+			}/*end add type_of_line switch*/
 			return lines_counter;
 			break;
-		}
+		}/*end of guidances case*/
 		
 	}/*end of switch*/
 		return FALSE;
@@ -90,7 +114,6 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 
 	/*adds the symbol and the value*/
 	strcpy(curr_symbol_line -> symbol, label);
-	curr_symbol_line -> value = adress;
 	
 	/*adds the arrtibutes*/
 	switch(type_of_sentence)
@@ -98,6 +121,7 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 		case INSTRUCTION_LINE:
 		{ 
 			strcpy(curr_symbol_line -> attribute, "code");
+			curr_symbol_line -> value = adress;
 			break;
 		}
 		case GUIDANCE_LINE:
@@ -119,9 +143,9 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 void connect_adresses(dataImg *guidance_table_ptr, long last_ic)
 {
 	/*declarations*/
-	int curr_adress = last_ic + NEXT_ADRESS;
+	long curr_adress = last_ic + NEXT_ADRESS;
 
-	while(guidance_table_ptr != NULL)
+	while(guidance_table_ptr != NULL) 
 	{
 		guidance_table_ptr -> adress =  guidance_table_ptr -> adress + curr_adress;
 		guidance_table_ptr = guidance_table_ptr -> next;	
@@ -129,10 +153,12 @@ void connect_adresses(dataImg *guidance_table_ptr, long last_ic)
 
 }/*EOF connect_adresses()*/
 
+
+
 void free_symbol_table_nodes(symLine *head_symbol_line) 
 {
 	/*Go through the whole line*/
-	while(head_symbol_line != NULL)
+	while(head_symbol_line -> next == NULL)
 	{
 		free(head_symbol_line);
 		head_symbol_line = head_symbol_line -> next; 
@@ -144,7 +170,7 @@ void free_symbol_table_nodes(symLine *head_symbol_line)
 void free_data_image_nodes(dataImg* head_data_image)
 {
 	/*Go through the whole line*/
-	while(head_data_image != NULL)
+	while(head_data_image -> next == NULL)
 	{
 		free(head_data_image);
 		head_data_image = head_data_image -> next; 
