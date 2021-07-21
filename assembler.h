@@ -2,7 +2,7 @@
 #define ASSEMBLER_H
 
 
-
+ 
 /*
 	The proccess of the two passes assembler.
 	allocates memorys for the tables, than
