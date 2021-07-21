@@ -11,21 +11,23 @@ int classification_of_sentence(char* curr_line)
 	/*declarations*/
 	int label_flag = off;
 	int i = 0;
-
+	
+	if(curr_line[i] == '\0'){return EMPTY_LINE;}
+	/*printf("curr line: %s\n", curr_line);*/
 	/*check if there is a label*/
 	while(curr_line[i] != '\0')
 	{
 		if(curr_line[i] == ':'){label_flag = on;}
 		i++;
 	}/*end while loop */
-	/*printf("curr_lne; %s\t label flag = %d",curr_line, label_flag);*/
+
 	i = 0;
 	
 	if(label_flag == on){while(curr_line[i] != ':'){i++;}}	
 	if(curr_line[i] == ':'){i++;}
 
 	while(curr_line[i] == ' ' || curr_line[i] == '\t'){i++;}
-
+	
 	if(curr_line[i] == '.'){return GUIDANCE_LINE;}
 	if(curr_line[i] == '\n'){return EMPTY_LINE;}
 	if(curr_line[i] == ';'){return NOTE_LINE;}
@@ -286,11 +288,10 @@ int to_ascii_list_operands(char* operands, int *the_list)
 				quote_flag = off;
 				break;			
 			}
-			the_list[operands_counter] = operands[i];
-			operands_counter++;
+			the_list[operands_counter++] = operands[i];
 			WHITE_SPACE_SKIP;
 		}
-
+		the_list[operands_counter++] = 0;/*adds zero line.*/
 	/*the .db .dh.dw scenario.*/
 	}else if((operands[i] >= '0' && operands[i] <= '9')){		
 		for (; i < strlen(operands);)/*continue from the place that we done in the last loop*/
