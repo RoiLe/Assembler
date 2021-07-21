@@ -1,20 +1,18 @@
-/*- קובץ header הצהרות על פונקציות שמשתמשים בהם במהלך כל התוכנית (registers,opcode,instructions, IC&DC, symbol-table ודומיהם)*/
 #define IC 100 
 #define DC 0	  
 #define NEXT_ADRESS 4
-#define LINE_MAX_LENGTH 80
-#define MAX_ARRTIBUTE_LENGTH 15
-#define KEY_WORD_MAX_LENGTH 10
-#define LABEL_MAX_LENGTH 31
-#define MACHINE_CODE_LENGTH 40 
-
-
-
+#define LINE_MAX_LENGTH 80 
+#define MAX_ARRTIBUTE_LENGTH 15 
+#define KEY_WORD_MAX_LENGTH 10  
+#define LABEL_MAX_LENGTH 31  
+#define MACHINE_CODE_LENGTH 40  
+  
+   
 enum file_succeeded { 
-	SUCCESSED = 0, FAILED = 1
-};
+	SUCCESSED = 0, FAILED = 1   
+}; 
 
-enum flags {
+enum flags { 
 	off = 0, on = 1
 };  
 
@@ -88,18 +86,18 @@ typedef enum opcodes{
 	OP_BLT,
 	OP_BGT,
 	OP_LB,
-	OP_SB,
+	OP_SB, 
 	OP_LW,
 	OP_SW,
 	OP_LH,
 	OP_SH,
 
-	/*J opcodes*/
+	/*J opcodes*/ 
 	OP_JMP = 30, 
 	OP_LA, 
-	OP_CALL , 
-	OP_STOP = 63 
-}opcode;  
+	OP_CALL ,  
+	OP_STOP = 63  
+}opcode;   
  
 
 enum size_of_byte{
@@ -111,12 +109,12 @@ enum size_of_byte{
 typedef struct symbol_line{ 
 	char symbol[LABEL_MAX_LENGTH];
 	long value; 
-	char attribute[MAX_ARRTIBUTE_LENGTH];     
+	char attribute[MAX_ARRTIBUTE_LENGTH];      
 	struct symbol_line *next;
 }symLine;
 
 typedef struct dataImage *DI_ptr;  
-typedef struct dataImage{ 
+typedef struct dataImage{  
 	long adress;
 	char sourceCode[LINE_MAX_LENGTH]; 
 	char machineCode[MACHINE_CODE_LENGTH]; 
