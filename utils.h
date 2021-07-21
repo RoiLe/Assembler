@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #define WHITE_SPACE_SKIP while(operands[i] == ' ' || operands[i] == '\n' || operands[i] == '\t'){i++;}
+#define PRM_WHITE_SPACE_SKIP while(temp_curr_line[i] == ' ' || temp_curr_line[i] == '\n' || temp_curr_line[i] == '\t'){i++;}
+
 
 enum TypeOfSentence{
 	EMPTY_LINE = 1,
