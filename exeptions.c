@@ -42,22 +42,27 @@ void print_errors(int errorType, int numOfLine)
 }/*end printError func*/
 
 
+ 
 
-
-int name_check_file(char* fileName)
+int name_check_file(char* file_name, char *the_name)
 {
 	int suffixFlag = off, pointFlag = off, i;
 	const char ch[1] = "."; 
 	char *checkSuffix; 
 	
-	for( i= 0; i < strlen(fileName); i++)    /*check if there is dot ['.']*/
-	{	
-		if(fileName[i] == '.')
-			{pointFlag = on;}
+	for( i= 0; i < strlen(file_name); i++)    /*check if there is dot ['.']*/
+	{
+		if(file_name[i] == '.')
+		{
+			pointFlag = on;
+			the_name[i] = '\0';
+			break;
+		}
+		the_name[i] = file_name[i];	
 	}
 	if(pointFlag == off){return NAME_ERROR;}
 
-	checkSuffix = strstr(fileName, ch);	
+	checkSuffix = strstr(file_name, ch);	
 	suffixFlag = (strcmp(checkSuffix, ".as") == CORRECT)?CORRECT:NAME_ERROR; /*the suffix is incorrect . [not ".as"]*/
 	
 	return suffixFlag;	
