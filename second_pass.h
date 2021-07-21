@@ -6,7 +6,7 @@
 
 
 */
-void second_pass(DI_ptr instruction_head, symLine *symbol_table_head, char *curr_line);
+/*void second_pass(DI_ptr instruction_head, symLine *symbol_table_head, char *curr_line);*/
 
 
 /*
@@ -26,5 +26,9 @@ void add_missed_values_to_data_image(DI_ptr instruction_head,symLine *symbol_tab
 
 */
 int check_reg_flag(DI_ptr head_data_image, char *curr_line);
+
+
+
+void insert_values_to_data_attribute(symLine *symbol_table_head, DI_ptr data_image_head);
 
 #endif
