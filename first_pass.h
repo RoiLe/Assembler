@@ -1,6 +1,8 @@
 #ifndef FIRSTPASS_H
 #define FIRSTPASS_H
 
+/*void first_pass_proccess(char *currLine,  int typeOfSentence, DI_ptr *instruction_head, DI_ptr *instruction_tail,
+ symLine *symbol_table_head, symLine *symbol_table_tail, long ic, long dc, int currentNumberLine);*/
 
 
 /*
