@@ -11,16 +11,12 @@ long check_the_label_exist(symLine *symbol_table_head, char *label);
 long get_current_adress(DI_ptr head_data_image, char *curr_line);
 void change_the_immed(DI_ptr head_data_image, long new_immed, long current_adress, char *key_word, char *operands, int type_of_key_word, int curr_opcode);
 void change_the_adress(DI_ptr head_data_image, char *key_word, char *operands, int curr_opcode, long new_adress, long current_adress);
+long get_adress_from_data_image(char* label, DI_ptr  data_image_head);
+void get_label(char *source_code, char *label);
 
-
-
-void second_pass(DI_ptr instruction_head, symLine *symbol_table_head, char *curr_line)
+/*void second_pass(DI_ptr instruction_head, symLine *symbol_table_head, char *curr_line)
 {
-	/*printf("%s ", curr_line);*/	
-
-
-
-}/*END second_pass()*/
+}END second_pass()*/
 
 
 
@@ -28,7 +24,8 @@ int add_entry_to_symbol_table(symLine *symbol_table_head, char *operand){
 
 	while(symbol_table_head != NULL)
 	{
-		if(!strcmp(symbol_table_head -> symbol, operand))
+	/*printf("%s", symbol_table_head -> symbol);*/
+		if(strcmp(symbol_table_head -> symbol, operand) == 0)
 		{
 			if(!strcmp(symbol_table_head -> attribute, "external"))
 				{
@@ -38,9 +35,9 @@ int add_entry_to_symbol_table(symLine *symbol_table_head, char *operand){
 			strcat(symbol_table_head -> attribute, ", entry");
 			return SUCCESSED;
 		} 
+		
 		symbol_table_head = symbol_table_head -> next; 
 	}/*end while loop*/	
-
 	printf("ERROR: There is no matching label in the current file\n");
 
 	return FAILED;
@@ -53,9 +50,10 @@ void add_missed_values_to_data_image(DI_ptr instruction_head, symLine *symbol_ta
 	char label[LABEL_MAX_LENGTH], curr_operands[LINE_MAX_LENGTH];
 	long current_adress = 0, immed_value = 0, label_adress = 0;
 		
+	/*printf("calling: operands: %s\t label: %s\n", operands, label);*/
 	strcpy(curr_operands, operands);
 	strcat(curr_operands, "\0");	
-
+	
 	switch(instruction_type)
 	{
 		case I_LINE_BRANCH:
@@ -67,7 +65,7 @@ void add_missed_values_to_data_image(DI_ptr instruction_head, symLine *symbol_ta
 			if((label_adress = check_the_label_exist(symbol_table_head, label)))
 			{
 				current_adress = get_current_adress(instruction_head, curr_line);
-				immed_value = current_adress - label_adress;
+				immed_value = label_adress - current_adress;
 
 				/*change the machine code field.*/
 				change_the_immed(instruction_head, immed_value, current_adress, key_word, curr_operands, instruction_type, opcode);
@@ -126,8 +124,6 @@ long check_the_label_exist(symLine *symbol_table_head, char *label){
 	}/*end while loop*/
 
 	return 0;
-
-
 }/*END check_the_label_exist()*/
 
 
@@ -210,11 +206,48 @@ void change_the_adress(DI_ptr head_data_image, char *key_word, char *operands, i
 
 }/*END change_the_adress()*/
 
+void insert_values_to_data_attribute(symLine *symbol_table_head, DI_ptr data_image_head){
+	long adress = 0;
+	char label[LABEL_MAX_LENGTH] = "\0";
+	while(symbol_table_head -> next != NULL)
+	{
+		if(!strcmp(symbol_table_head -> attribute, "data"))
+		{
+			strcpy(label, symbol_table_head -> symbol);
+			
+			adress = get_adress_from_data_image(label, data_image_head);
+			symbol_table_head -> value = adress;
+		}
+		symbol_table_head = symbol_table_head -> next;
+	}/*end while loop*/
+}/*END adds_values_to_data_attribute()*/
 
 
+long get_adress_from_data_image(char* label, DI_ptr data_image_head)
+{
+	char temp_label[LABEL_MAX_LENGTH] = "\0";
+	while(data_image_head -> next != NULL)
+	{
+		get_label(data_image_head -> sourceCode, temp_label);
+		if(!strcmp(temp_label, label))
+		{			
+			return data_image_head -> adress;
+		}
+		data_image_head = data_image_head -> next;
+	}/*end while loop*/
+	
+	return FALSE;
+}/*END  get_adress_from_data_image()*/
 
+void get_label(char *source_code, char *label){
+	int i = 0;
+	char temp_label[LABEL_MAX_LENGTH] = "\0";
 
+	while(source_code[i] != '\0')
+	{
+		temp_label[i] = source_code[i];
+		i++;
+		if(source_code[i] == ':'){strcpy(label, temp_label);}
 
-
-
-
+	}/*end while loop*/ 
+}/*END get_label()*/
