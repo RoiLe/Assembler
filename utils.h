@@ -123,7 +123,7 @@ void get_last_field(char *operands, char* label);
 
 
 
-
+int compare_strings(char *str1, char *str2);
 
 
 
