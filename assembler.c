@@ -11,106 +11,119 @@
 
 
 int main(int argc, char *argv[]){
-	int success = 0;	
-	int i;
+	int success = CORRECT, i;
+	/*char *the_assembler = "assembler";*/
 
 	if (argc == 1)
 	{
-		printf("ERROR: there is no file. \n");
+		printf("ERROR: there is no file in the input\nPlease insert an assembly file. \n");
 		exit(0); 
 	}
 
-	for(i = 1; i < argc; ++i) 
+	for(i = 1; i < argc; i++) 
 	{
-		success = proccess_program(argv[i]);    /*the proccess done in succussefuly.*/
-	}  	
-	
+		success = proccess_program(argv[i]);/*the proccess done succussefuly.*/
+		if(success == FAILED)
+		{
+			printf("'%s' file failed!\n", argv[i]);
+		}
+	} /*end for loop*/ 	
 
 return success;
 }/*END main() */
 
 
- int proccess_program(char* file) 
+int proccess_program(char* file) 
 {
 	/*declarations*/
-	static long ic = IC, dc = DC;
+	static long ic = IC, dc = DC, check_label = 0;
 	FILE *assembly_code = NULL;
-	int exeptions = CORRECT, currentNumberLine = 0, typeOfSentence;
+	int exeptions = CORRECT, error_type = CORRECT, currentNumberLine = 0, typeOfSentence, none = 0;
 	char label[LABEL_MAX_LENGTH], key_word[KEY_WORD_MAX_LENGTH], operands[LINE_MAX_LENGTH], the_name[20];
+
+	/*data image & symbol table declarations*/
 	DI_ptr instruction_head = NULL, instruction_tail = NULL, p_instruction;
 	DI_ptr guidance_head = NULL, guidance_tail = NULL, p_guidance;
-
-	symLine *symbol_table_head = NULL, *symbol_table_tail = NULL, *p_symbol_table;	
+	symLine *symbol_table_head = NULL, *symbol_table_tail = NULL, *p_symbol_table;		
 	
-
 	/* checks the file name and open it if it's ok... */
-	exeptions = name_check_file(file, the_name);	
-	print_errors(exeptions, currentNumberLine);
+	error_type = name_check_file(file, the_name);		
+	print_errors(error_type, off, &none, the_name);
+	
+	/*open the file*/
 	if(exeptions == CORRECT)
 	{
-		assembly_code = fopen(file, "r");/*open the file*/
+		assembly_code = fopen(file, "r");
 		if(!assembly_code)
 		{
-			print_errors(DONT_EXIST_FILE_ERROR, currentNumberLine) ;
+			print_errors(DONT_EXIST_FILE_ERROR, off, &none, the_name) ;
+			print_errors(EQUATE_TO_ZERO, off, off, NULL);
 			return FAILED;
 		}
-	}
-	else
-	{
-		print_errors(NAME_ERROR, currentNumberLine) ;
-		return FAILED;
-	}
+	}else{
+		print_errors(EQUATE_TO_ZERO, off, off, NULL);
+		return FAILED;		
+	}/*end open file*/	
 
-	ic = IC;
 	/*starting now the first pass... */
+	ic = IC;
 	while(!feof(assembly_code)) 
 	{	
 		/*declarations*/
 		int guid_line_count;				
 		char *currLine = (char *)calloc(LINE_MAX_LENGTH, sizeof(char));
-		if(!currLine){print_errors(ALLOCATION_ERROR, currentNumberLine);}
+		if(!currLine){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
 
 		/*read the current line and define the type.*/
 		fgets(currLine, LINE_MAX_LENGTH, assembly_code);		
 		typeOfSentence = classification_of_sentence(currLine);
-		/*printf("type: %d\t curennt line: %s\n",  typeOfSentence, currLine);*/
+		
+		/*line length is too long */
+		if(strlen(currLine) > LINE_MAX_LENGTH)
+			{print_errors(TOO_LONG_LINE_COMMAND_ERROR, currentNumberLine, &none, NULL);}
 
-		/*printf("curr line: %s\n", currLine);*/
+		/*not an empty or note line*/
 		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)		
-		{
+		{	
+			/*declaretion*/
 			char temp_curr_line[LINE_MAX_LENGTH];
 			strcpy(temp_curr_line, currLine);
 			currentNumberLine++;
 
 			/*get the data from the current line*/
-			get_commands(temp_curr_line, label, key_word, operands);/*fill the label, the key word and the data of the line.*/		
+			get_commands(temp_curr_line, label, key_word, operands, currentNumberLine);/*fill the label, the key word and the data of the line.*/
+		
+			/*check the label*/
+			if(label[0] != '\0')
+			{
+				check_label = check_the_label_exist(symbol_table_head, label);
+				if(check_label != CORRECT){print_errors(LABEL_ALREADY_EXIST_ERROR, currentNumberLine, &none, label);}
+				check_label = get_instruction_type(label, &error_type, &error_type);
+				if(check_label != CORRECT){print_errors(LABEL_SYSTEM_WORD_ERROR, currentNumberLine, &none, label);}					
+			}/*end check the label*/
 
-			/*check the syntax of current line and print errors if there is.*/
-			exeptions = check_line_syntax(currLine); 
-			print_errors(exeptions, currentNumberLine);
 
-			/*create the data image.*/
-			
+			/*create the data image.*/			
 			if(typeOfSentence == INSTRUCTION_LINE )
 			{		
 				if(instruction_head == NULL)
 				{
-					ic += data_image_line_create(&instruction_head,NULL, currLine, ic, typeOfSentence, key_word, operands);
+					ic += data_image_line_create(&instruction_head,NULL, currLine, ic, typeOfSentence, key_word, operands, currentNumberLine);
 					instruction_head -> next = NULL;
 					instruction_tail = instruction_head;
 				}else{					
-					ic += data_image_line_create(&p_instruction,NULL, currLine, ic, typeOfSentence, key_word, operands);
+					ic += data_image_line_create(&p_instruction,NULL, currLine, ic, typeOfSentence, key_word, operands, currentNumberLine);
 					instruction_tail -> next = p_instruction;
 					instruction_tail = instruction_tail -> next;
 				}
 			}else{     
 				if(guidance_head == NULL)
 				{
-					guid_line_count = data_image_line_create(&guidance_head, &guidance_tail, currLine, dc ,typeOfSentence, key_word, operands);
+					guid_line_count = data_image_line_create(&guidance_head, &guidance_tail, currLine, dc ,typeOfSentence, key_word, operands, 						currentNumberLine);
 					
 				}else{
 
-					guid_line_count = data_image_line_create(&p_guidance, &guidance_tail, currLine, dc ,typeOfSentence, key_word, operands);
+					guid_line_count = data_image_line_create(&p_guidance, &guidance_tail, currLine, dc ,typeOfSentence, key_word, operands, 					currentNumberLine);
 				}
 				dc += guid_line_count;
 
@@ -160,13 +173,15 @@ return success;
 		key_word [0] = '\0';
 		
    	}/*END while(!feof(assembly_code)) loop */
-   	
-	if(exeptions != CORRECT){return FAILED;}	
-
-	/*printf("instruction\n\n\t\t");
-	data_image_print(instruction_head);
-	printf("guidances\n\n\t\t");
-	data_image_print(guidance_head);*/
+		
+	
+	/*stop here if there is problem until now*/
+	print_errors(GET_NUM_OF_ERRORS, off, &exeptions, NULL);
+	if(exeptions != CORRECT)
+	{
+		print_errors(EQUATE_TO_ZERO, off, off, NULL);
+		return FAILED;
+	}	
 	
 	/*order the adresses of the guidances lines after the instructions lines*/
 	connect_adresses(guidance_head, instruction_tail -> adress);
@@ -175,10 +190,13 @@ return success;
 	instruction_tail -> next = guidance_head;
 
 	
-	/*print the first pass table	
-	printf("\tfirst pass table\n\n");
-	data_image_print(instruction_head);
-	symbol_table_print(symbol_table_head);*/
+	/*
+		print the first pass table:	
+		
+		printf("\tfirst pass table\n\n");
+		data_image_print(instruction_head);
+		symbol_table_print(symbol_table_head);
+	*/
 
 	/*complete the values of data attributes in symbol table*/
 	insert_values_to_data_attribute(symbol_table_head, instruction_head);
@@ -188,27 +206,33 @@ return success;
 		we continue now to the second pass..!!     
 	*/
 	rewind(assembly_code);
-		
+	currentNumberLine = 0;
+	
 	while(!feof(assembly_code)) 
 	{
 		char *currLine = (char *)calloc(LINE_MAX_LENGTH, sizeof(char));
-		if(!currLine){print_errors(ALLOCATION_ERROR, currentNumberLine);}		
+		if(!currLine){print_errors(ALLOCATION_ERROR, currentNumberLine, &none, currLine);}		
 
 		fgets(currLine, LINE_MAX_LENGTH, assembly_code);		
 		typeOfSentence = classification_of_sentence(currLine);
 
-		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)/*if its not empty or note lines*/		
+		/*not an empty or note line*/
+		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)		
 		{
 			char temp_curr_line[LINE_MAX_LENGTH];
 			strcpy(temp_curr_line, currLine);
-	
-			get_commands(temp_curr_line, label, key_word, operands);/*fill the label, the key word and the data of the line.*/		
+			currentNumberLine++;
+
+			/*fill the label, the key word and the data of the line.*/
+			get_commands(temp_curr_line, label, key_word, operands, currentNumberLine);		
 
 			if(typeOfSentence == GUIDANCE_LINE && get_guidance_type(key_word) == ENTRY)
 			{
-				add_entry_to_symbol_table(symbol_table_head, operands);
+				/*add the entry value*/
+				add_entry_to_symbol_table(symbol_table_head, operands, currentNumberLine);
 			}else{
-				add_missed_values_to_data_image(instruction_head, symbol_table_head, key_word, operands, currLine);				
+				/*add missed value*/
+				add_missed_values_to_data_image(instruction_head, symbol_table_head, key_word, operands, currLine, 						currentNumberLine);				
 			}
 		}
 		free(currLine);
@@ -217,9 +241,21 @@ return success;
 	/*close the assembley code file*/
 	fclose(assembly_code);
 
-	printf("\n\n\tsecond pass tables\n\n");
-	data_image_print(instruction_head);
-	symbol_table_print(symbol_table_head);
+	/*stop here if there is problem until now*/ 
+	print_errors(GET_NUM_OF_ERRORS, off, &exeptions, NULL);
+	if(exeptions != CORRECT)
+	{
+		print_errors(EQUATE_TO_ZERO, off, off, NULL);
+		return FAILED;
+	}	
+
+	
+	/*	print the second pass table: 
+
+		printf("\n\n\t%s - second pass tables\n\n", the_name);
+		data_image_print(instruction_head);
+		symbol_table_print(symbol_table_head);
+	*/
 	
 	/*
 		the second pass done 
@@ -227,7 +263,9 @@ return success;
 		output..!!
 	*/
 	
+	/*output files*/
 	outputs(symbol_table_head, instruction_head, ic, dc, the_name);
+	/*printf("file '%s' done\n", the_name);*/
 
 	/*free some nodes*/
 	free_symbol_table_nodes(symbol_table_head);
@@ -236,6 +274,7 @@ return success;
 	/*reset the counters*/
 	ic = IC; 
 	dc = DC;
+	print_errors(EQUATE_TO_ZERO, off, off, NULL);
 
 	return SUCCESSED;
 }/*END proccess_program()*/
