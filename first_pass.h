@@ -23,7 +23,7 @@
 	num_of_operands -> number of operands.
 
 */
-int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLine, long adress, int typeOfSentence, char *key_word, char* operands);
+int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLine, long adress, int typeOfSentence, char *key_word, char* operands, int line_number);
 
 /*
 	Creates the symbol table.
@@ -62,9 +62,21 @@ void free_data_image_nodes(dataImg* head_data_image);
 
 
 
+/*-----------------------not in use--------------------------*/
+/*---------unless you want to see the prints-----------------*/
+/*
+	prints the data image table
+	[adress | source code | machine code]
+ */
+void data_image_print(dataImg *head);
 
-/*vvvvvvv---delete before the submission--vvvvvvvvvvvvv */
-void data_image_print(DI_ptr);
-void symbol_table_print(symLine*);
+/*
+	prints the symbols table
+	[symbol | value | attribute]
+
+*/
+void symbol_table_print(symLine *symbol_table_head);
+
+
 
 #endif
