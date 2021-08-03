@@ -11,12 +11,10 @@
 	Creates the structure of every line in integer
 	return the current R line in R_struct
 */
-R create_R_instruction(char *, char *, int, int);
+R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number);
 
 
-
-
-void instruction_binary_line(char *machineCode, char *key_word , char *operands)
+void instruction_binary_line(char *machineCode, char *key_word , char *operands,  int line_number)
 {
 	R curr_R_line;
 	I curr_I_line;
@@ -25,14 +23,14 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 	  
 	int type_of_key_word = get_instruction_type(key_word, &curr_opcode, &curr_funct);
 		
-	if(!type_of_key_word){printf("ERROR: Does not recognize the keyword.\n");}
+	if(!type_of_key_word){ print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);}
 	
 	switch(type_of_key_word)/*call to the correct func depened the type*/
 	{
 		case R_LINE_LOGIC: case R_LINE_COPY: 
 
 			/*create here the struct of R instruction.. */
-			curr_R_line = create_R_instruction(key_word, operands, curr_opcode, curr_funct);
+			curr_R_line = create_R_instruction(key_word, operands, curr_opcode, curr_funct, line_number);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_R_line.size,WORD);
@@ -41,7 +39,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 		case I_LINE_LOGIC: case I_LINE_BRANCH: case I_LINE_SORE_LOAD:
 
 			/*create_I_instruction(key_word, operands, type_of_key_word);*/
-			curr_I_line = create_I_instruction(key_word, operands, type_of_key_word, curr_opcode, off);
+			curr_I_line = create_I_instruction(key_word, operands, type_of_key_word, curr_opcode, off, line_number);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_I_line.size,WORD);
@@ -50,40 +48,46 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 		case J_LINE_SPECIAL:
 			
 			/*create_J_instruction(key_word, operands, type_of_key_word);*/
-			curr_J_line = create_J_instruction(key_word, operands, curr_opcode, off);
+			curr_J_line = create_J_instruction(key_word, operands, curr_opcode, off, line_number);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_J_line.size,WORD);
 			break;
-
-		default:
-			strcpy(machineCode, "will be create at the future. ");
 	}/*end switch(type_of_key_word)*/
-
-
-
 }/*END createInstruction()*/
 
 
-int guidance_binary_lines(char *machine_code,char *key_word, int data)
+int guidance_binary_lines(char *machine_code,char *key_word, long data, char *currLine, int line_number)
 {
 	/*declarations*/
 	DB_CODE curr_db_asciz;
 	DH_CODE	curr_dh;
 	DW_CODE curr_dw;
 
-	int type_of_guidance = get_guidance_type(key_word);	
+	int type_of_guidance = get_guidance_type(key_word), none;	
 
 	switch(type_of_guidance)
 	{ 
 		case DB:
 		case ASCIZ:		
+			/*check the size of the number*/
+			if(data > MAX_SIGNED_BYTE || data < MIN_SIGNED_BYTE)
+			{
+				print_errors(SIZE_NUMBER_ERROR, line_number, &none, NULL);				
+				break;
+			}
 			/*Adds the current data */		
 			curr_db_asciz.guidance.byte = data;
 			/*lets make the structure binary.. */
 			int_to_binary(machine_code, curr_db_asciz.size,BYTE);
 			break;
 		case DH:
+			/*check the size of the number*/
+			if(data > MAX_SIGNED_HALF_WORD || data <  MIN_SIGNED_HALF_WORD)
+			{
+				print_errors(SIZE_NUMBER_ERROR, line_number, &none, NULL);				
+				break;
+			}
 			/*Adds the current data */
 			curr_dh.guidance.half_word = data;
 			/*lets make the structure binary.. */
@@ -95,16 +99,20 @@ int guidance_binary_lines(char *machine_code,char *key_word, int data)
 			/*lets make the structure binary.. */
 			int_to_binary(machine_code, curr_dw.size, WORD);
 			break;
-
+		default:
+			print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);
 	}/*end of switch*/
 
 	return type_of_guidance;
 }/*END create_guidance_code()*/
 
+
 void int_to_binary(char *machine_code, int curr, int num_of_byte)
 {
+	/*declaration*/
 	unsigned mask = 1;
 
+	/*go through the mask*/
 	for(;mask;mask <<= 1)
 	{	
 		if(num_of_byte != 0)
@@ -124,10 +132,10 @@ void int_to_binary(char *machine_code, int curr, int num_of_byte)
 }/*END int_to_binary()*/
 
 
-R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct)
+R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number)
 {	
 	/*declarations*/
-	int i = 0 , comma_flag = off, 
+	int i = 0 , comma_flag = off, none = 0,
 	operands_counter = 0, temp_rd = 0, temp_rt = 0, temp_rs = 0,
 	num_of_reg = -1, diff_to_int = 48;	
 	R curr;
@@ -141,7 +149,7 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 	/*add the registers. */
 	for(i = 0; i < strlen(operands);)
 	{		
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 		
 		if(operands[i] == '$' && comma_flag == off)
 		{
@@ -149,15 +157,18 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 			comma_flag = on;
 			operands_counter++;
 
-			/*check if its two digit number.*/
-			 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+			if(operands[i] >= 48 && operands[i] <= 57)
 			{
-				num_of_reg = ((operands[i] - diff_to_int)*10) + (operands[i + 1] - diff_to_int);
-				i = i+2;
-			}else{
-				num_of_reg = operands[i] - diff_to_int;
-				i++;
-			}
+				/*check if its two digit number.*/
+				 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+				{
+					num_of_reg = ((operands[i] - diff_to_int) * 10) + (operands[i + 1] - diff_to_int);
+					i = i+2;
+				}else{
+					num_of_reg = operands[i] - diff_to_int;
+					i++;
+				}
+			}else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 
 			if(num_of_reg >= 0 && num_of_reg <= 31)
 			{
@@ -171,22 +182,22 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 						else{temp_rt = num_of_reg;}
 						break;
 					case 3:
-						if(curr.instruct.opcode == OP_MOVE){printf("ERROR - its not the correct operator.\n");}
+						if(curr.instruct.opcode == OP_MOVE){print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 						else{temp_rd = num_of_reg;}	
 						break;
 					default:
-						printf("ERROR - too many operands.\n");
+						print_errors(TOO_MANY_OPERANDS, line_number, &none, NULL);
 
 				}/*end switch*/
 				num_of_reg = -1;
-			}
+			}else{print_errors(REGISTER_DONT_EXIST, line_number, &none, NULL);}
 		}else{
 			if(operands[i++] == ','){comma_flag = off;}
-			else{printf("ERROR - dont exist register.\n");}
+			else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 		}
 	
-		WHITE_SPACE_SKIP;
-		
+		OPERANDS_WHITE_SPACE_SKIP;
+	 	
 	
 	}/*end for loop*/		
 
@@ -200,14 +211,14 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 
 	return curr;
 }/*END create_R_instruction()*/
+ 
 
-
-I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed)
+I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed, int line_number)
 {
 	/*declarations*/
 	I curr;
 	int i, temp_rs = 0, temp_rt = 0, comma_flag = off, minus_flag = off,
-	num_of_reg = 0, operands_counter = 0,  diff_to_int = 48;
+	num_of_reg = 0, operands_counter = 0,  diff_to_int = 48, none = 0;
 	unsigned int temp_immed = 0;
 
 	
@@ -217,23 +228,26 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 	/*add the operands. */
 	for(i = 0; i < strlen(operands);)
 	{
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 		
 		if(operands[i] == '$' && comma_flag == off)
 		{
 			i++;
 			comma_flag = on;
 			operands_counter++;
-
-			/*check if its two digit number.*/
-			 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+			
+			if(operands[i] >= 48 && operands[i] <= 57)
 			{
-				num_of_reg = ((operands[i] - diff_to_int)*10) + (operands[i + 1] - diff_to_int);
-				i = i+2;
-			}else{
-				num_of_reg = operands[i] - diff_to_int;
-				i++;
-			}
+				/*check if its two digit number.*/
+				 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+				{
+					num_of_reg = ((operands[i] - diff_to_int)*10) + (operands[i + 1] - diff_to_int);
+					i = i+2;
+				}else{
+					num_of_reg = operands[i] - diff_to_int;
+					i++;
+				}
+			}else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 
 			/*the register exist. */
 			if(num_of_reg >= 0 && num_of_reg <= 31)
@@ -247,18 +261,19 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 						temp_rt = num_of_reg;
 						break;
 					default:
-						printf("ERROR - too many operands.\n");
+						print_errors(TOO_MANY_OPERANDS, line_number, &none, NULL);			
 
 				}/*end switch*/
 				num_of_reg = -1;
-			}
+			}else{print_errors(REGISTER_DONT_EXIST, line_number, &none, NULL);}
 
-		}else{
+		}else{ 
 			if(operands[i] == ',')
 			{
 				comma_flag = off;
 				i++;
 			}
+			/*create the immed number value*/
 			else if(comma_flag == off)
 			{
 				while(operands[i] == '-' ||(operands[i] >= '0' && operands[i] <= '9'))
@@ -268,19 +283,26 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 					i++;
 				}
 				comma_flag = on;
-				if(minus_flag == on){temp_immed = (-1) * temp_immed ;}			
+				if(minus_flag == on){temp_immed = (-1) * temp_immed ;}	
+				
+				/*check if the number is in the range*/
+				if(temp_immed > MAX_SIGNED_HALF_WORD && temp_immed < MIN_SIGNED_HALF_WORD)
+				{
+					print_errors(SIZE_NUMBER_ERROR, line_number, &none, NULL);
+					return curr;			
+				}		
 			}		
 			/*its a label*/
 			else if((operands[i] >= 'A' && operands[i] <= 'Z') || (operands[i] >= 'a' && operands[i] <= 'z'))
 			{
 				temp_immed = curr_immed;
 				i++;
-			}else{				
-				printf("ERROR - dont exist register.\n");
+			}else{
+				print_errors(SYNTAX_ERROR, line_number, &none, operands);					
 				i++;
 			}			
 		}
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 
 	}/*end for loop*/
 
@@ -292,30 +314,35 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 
 }/*END create_I_instruction()*/
 
-J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress)
+J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress, int line_number)
 {
+	/*declarations*/
 	J curr;		
-	int i, temp_reg = off, temp_address = 0, num_of_reg = 0;
+	int i, temp_reg = off, temp_address = 0, num_of_reg = 0, none;
+
 	/*add the correct opcode. */
 	curr.instruct.opcode = curr_opcode;
 
 	/*add the operands. */
 	for(i = 0; i < strlen(operands);)
 	{
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 		/*there is a regsiger.*/
 		if(operands[i] == '$'){temp_reg = on;}
 		i++;
 
-		if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+		if(operands[i + 1] >= 48 && operands[i + 1] <= 57)/*two digits number*/
 		{
-			num_of_reg = ((operands[i] - 48)*10) + (operands[i + 1] - 48);
+			num_of_reg = ((operands[i] - 48) * 10) + (operands[i + 1] - 48);
 			i = i+2;
-		}else{
+		}else{/*one digit number*/
 			num_of_reg = operands[i] - 48;
 			i++;
 		}
 
+		if(temp_reg == on && (num_of_reg > 31 || num_of_reg < 0))
+		{print_errors(REGISTER_DONT_EXIST, line_number, &none, operands);}
+		
 		switch(curr_opcode)
 		{
 			case OP_JMP:
@@ -334,7 +361,7 @@ J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adr
 			
 		}/*end of switch*/	
 
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 
 	}/*end of for loop*/
 
