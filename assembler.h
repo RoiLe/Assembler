@@ -2,7 +2,7 @@
 #define ASSEMBLER_H
 
 
- 
+
 /*
 	The proccess of the two passes assembler.
 	allocates memorys for the tables, than
@@ -42,6 +42,6 @@
 	p_symbol_table -> symol table pointer.
 	 
 */
-int proccess_program(char*); 
+int proccess_program(char* file); 
 
 #endif
