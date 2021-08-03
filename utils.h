@@ -1,8 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#define WHITE_SPACE_SKIP while(operands[i] == ' ' || operands[i] == '\n' || operands[i] == '\t'){i++;}
-#define PRM_WHITE_SPACE_SKIP while(temp_curr_line[i] == ' ' || temp_curr_line[i] == '\n' || temp_curr_line[i] == '\t'){i++;}
+#define OPERANDS_WHITE_SPACE_SKIP while(operands[i] == ' ' || operands[i] == '\n' || operands[i] == '\t'){i++;}
+#define CURR_LINE_WHITE_SPACE_SKIP while(temp_curr_line[i] == ' ' || temp_curr_line[i] == '\n' || temp_curr_line[i] == '\t'){i++;}
 
 
 enum TypeOfSentence{
@@ -47,7 +47,7 @@ char *revese_string(char* str);
    	array -> array of the command that we divide.
 
 */
-void get_commands(char *curr_line, char* label, char* key_word, char* operands);
+void get_commands(char *curr_line, char* label, char* key_word, char* operands, int number_line);
 
 
 /*
@@ -93,6 +93,7 @@ int get_instruction_type(char *key_word, int *curr_opcode, int *curr_funct);
 */
 int get_guidance_type(char *key_word);
 
+
 /*
 	This func takes arrays of string values, 
 	and return array of numbers that more easy to change to binary code.
@@ -106,27 +107,30 @@ int get_guidance_type(char *key_word);
 	temp_num -> temporary number. 
 
 */
-int to_ascii_list_operands(char *operands, int *the_list); 
-
-
-
+int to_ascii_list_operands(char *operands, int *the_list, int number_line); 
 
 
 /*
-
-
-
-
+	Get the last field in the current line. 
+	With the help of the function strtok().
 */
 void get_last_field(char *operands, char* label);
 
 
 
+/*
+	Compare to strings. 
+	Runs on both strings. As long as one does not similar the other return FALSE.
 
+*/
 int compare_strings(char *str1, char *str2);
 
 
-
+/*
+	check if the label exist in the symbol table. 
+	return the value if its exist and FAILED if dont.
+*/
+long check_the_label_exist(symLine *symbol_table_head, char *label);
 
 
 #endif
