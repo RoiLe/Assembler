@@ -6,21 +6,21 @@
 #define KEY_WORD_MAX_LENGTH 10  
 #define LABEL_MAX_LENGTH 31  
 #define MACHINE_CODE_LENGTH 40  
-  
-   
-enum file_succeeded { 
-	SUCCESSED = 0, FAILED = 1   
+         
+                    
+enum file_succeeded {  
+	SUCCESSED = 0, FAILED = 1    
 }; 
-
+  
 enum flags { 
 	off = 0, on = 1
-};  
-
+};   
+ 
 typedef enum booleans {
 	FALSE = 0, TRUE = 1
 } bool;
  
-
+    
 typedef enum type_of_instruction{
 
 	R_LINE_LOGIC = 1,
@@ -35,9 +35,9 @@ typedef enum type_of_instruction{
 	J_LINE_SPECIAL
 
 }type_ins;
-
-typedef enum type_of_guidance{
-
+       
+typedef enum type_of_guidance{ 
+  
 	DB = 1,
 	DH,
 	DW,
@@ -103,9 +103,9 @@ typedef enum opcodes{
 enum size_of_byte{
 	BYTE = 8,
 	HALF_WORD = 16, 
-	WORD = 32 	
-};
-
+	WORD = 32 	 
+}; 
+ 
 typedef struct symbol_line{ 
 	char symbol[LABEL_MAX_LENGTH];
 	long value; 
