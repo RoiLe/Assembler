@@ -1,8 +1,13 @@
 #ifndef BINARY_H
 #define BINARY_H
 
-#define MAX_UNSIGNED_INT 32767
-#define MIX_UNSIGNED_INT -32768
+#define MIN_SIGNED_BYTE -128
+#define MAX_SIGNED_BYTE 127
+#define MIN_SIGNED_HALF_WORD -32768
+#define MAX_SIGNED_HALF_WORD 32767
+#define MIN_SIGNED_WORD -2147483647
+#define MAX_SIGNED_WORD 2147483646
+
 
 /*
 	Creates a binary line from instructions lines in 
@@ -20,7 +25,7 @@
 				output -> 00000000011001010100100001000000
 				
 */
-void instruction_binary_line(char *machineCode, char *key_word , char *operands);
+void instruction_binary_line(char *machineCode, char *key_word , char *operands, int line_number);
 
 
 
@@ -40,26 +45,29 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands)
 					11111111111111111111111111110100
 	
 */
-int guidance_binary_lines(char *machineCode,char *key_word, int data);
+int guidance_binary_lines(char *machineCode,char *key_word, long data, char *currLine, int line_number);
 
 
 /*
 	Creates the structure of every line in integer
 	return the current I line in I_struct
 */
-I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed); 
+I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed, int line_number); 
 
 
 /*
 	Creates the structure of every line in integer
 	return the current J line in J_struct
 */
-J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress);
+J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adress, int line_number);
 
 
 /*
-	Converts from int to binary code.
+	Converts from int to binary code [32 bits].
 	return the binary code in string.
+
+	input output example:	input -> 8
+				output-> 00000000000000000000000000001000
 */
 void int_to_binary(char* machine_code, int curr, int num_of_byte);
 
