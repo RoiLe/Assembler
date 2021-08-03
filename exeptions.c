@@ -6,38 +6,99 @@
 
 
 
+ 
 
+void print_errors(int error_type, int num_of_line, int *exeptions, char *note)
+{ 
+	static int num_of_errors = 0;
+  
+	switch(error_type)
+    	{ 
+		case GET_NUM_OF_ERRORS: 
+            		*exeptions = num_of_errors;
+            		break;
+	
+		case EQUATE_TO_ZERO: 
+            		num_of_errors = 0;
+            		break;
 
-void print_errors(int errorType, int numOfLine)
-{
-	switch(errorType)
-    	{
+		/*file*/
+        	case NAME_ERROR: 
+            		printf("ERROR: '%s' file name is incorrect.\n", note);
+			num_of_errors++;
+            		break;
+ 
+ 		case DONT_EXIST_FILE_ERROR: 
+            		if(num_of_errors == CORRECT){printf("ERROR: '%s' file is not exist.\n", note);}
+			num_of_errors++;
+            		break;
 
-        case 0: 
-            	break;
+		/*line*/
+		case SYNTAX_ERROR: 
+            		printf("ERROR: line %d: syntax error <%s>\n", num_of_line, note);
+			num_of_errors++;
+            		break;
 
-        case 1: /*name error*/
-            	printf("ERROR: the file name is incorrect.\n");
-            	break;
+		case TOO_LONG_LINE_COMMAND_ERROR: 
+            		printf("ERROR: line %d: too long line.\n", num_of_line);
+			num_of_errors++;
+            		break;
 
- 	case 2: /*empty file error*/
-            	printf("ERROR: the file is not exist.\n");
-            	break;
+		
+		/*label*/ 
+		case LENGTH_LABEL_ERROR:
+			printf("ERROR: line %d: too long label.\n", num_of_line);
+			num_of_errors++;
+            		break;
+      		
+		case LABEL_DONT_EXIST: 
+            		printf("ERROR: line %d: '%s' label not founded\n", num_of_line, note);
+			num_of_errors++;
+            		break;
+		
+		case LABEL_ALREADY_EXIST_ERROR:
+			printf("ERROR: line %d: the label '%s' already exist.\n",  num_of_line, note);
+			num_of_errors++;
+            		break;
+		
+ 		case LABEL_SYSTEM_WORD_ERROR:
+			printf("ERROR: line %d: The label '%s' is belongs to the system.\n",  num_of_line, note);
+			num_of_errors++;
+            		break;
+		
 
-	case 3: /*sentence syntax error*/
-            	printf("ERROR: there is a syntax error in line %d.\n", numOfLine);
-            	break;
+		/*operands*/
+		case TOO_MANY_OPERANDS:  
+            		printf("ERROR: line %d: extraneous operand.\n", num_of_line);
+			num_of_errors++;
+            		break;
 
-	case 4: /*sentence syntax error*/
-            	printf("ERROR: the line %d is too long.\n", numOfLine);
-            	break;
+		case REGISTER_DONT_EXIST: 
+            		printf("ERROR: line %d: register dont exist.\n", num_of_line);
+			num_of_errors++;
+            		break;
+		
+		case KEY_WORD_INCORRECT:
+			if(num_of_errors == CORRECT){printf("ERROR:line %d: key word '%s' is incorrect.\n", num_of_line, note);}
+			num_of_errors++;
+            		break;
 
-	case 5: /*sentence syntax error*/
-            	printf("ERROR: there is a problem to allocate memory.\n");
-            	break;
-       /*default:*/
+		case EXTERNAL_ENTRY_TOGETHER_ERROR: 
+            		printf("ERROR: line %d: '%s' already used.\n", num_of_line, note);
+			num_of_errors++;
+            		break;
 
-    	}
+		case SIZE_NUMBER_ERROR:
+			printf("ERROR: line %d: exceptional numeric value.\n", num_of_line);
+			num_of_errors++;
+            		break;
+
+		/*allocation*/
+		case ALLOCATION_ERROR: 
+            		printf("ERROR: there is a problem to allocate memory.\n");
+			num_of_errors++;
+            		break;	
+    	}/*end of switch*/
 
 }/*end printError func*/
 
@@ -67,27 +128,6 @@ int name_check_file(char* file_name, char *the_name)
 	
 	return suffixFlag;	
 
-}/*END nameCheckFile()*/
-
-/*
+}/*END name_check_file()*/
 
 
-*/
-int check_line_syntax(char* currLine)
-{
-	int counter = 0, i;
-
-	for(i = 0; i < strlen(currLine); i++)
-	{
-		/*add check the label*/
-		/*add the guidence syntax check */
-		/*add the instruction syntax check */
-
-
-	}/*end for loop*/
-
-	if((counter == LINE_MAX_LENGTH) && (currLine[counter] != EOF))return SYNTAX_ERROR;
-	
-
-	return CORRECT;
-}/*END checkLineSyntax()*/
