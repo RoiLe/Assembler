@@ -8,19 +8,20 @@
 #include "binary.h"
 
 
-int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLine, long adress, int typeOfSentence, char *key_word, char* operands)
+int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLine, long adress, int type_of_sentence, char *key_word, char* operands, int line_number)
 {	
-	
+	int none = 0;
+
 	/*allocation*/
 	DI_ptr curr = (dataImg*)malloc(sizeof(dataImg)), temp = NULL;
-	if(!curr){print_errors(ALLOCATION_ERROR, adress);}
+	if(!curr){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
 	
-	switch(typeOfSentence)
+	switch(type_of_sentence)
 	{
 		case INSTRUCTION_LINE:
 		{
 			/*put the correct value*/
-			instruction_binary_line(curr -> machineCode , key_word, operands);
+			instruction_binary_line(curr -> machineCode , key_word, operands, line_number);
 			strcpy(curr -> sourceCode, currLine);
 			curr -> adress = adress;
 			curr -> next = NULL;
@@ -34,20 +35,20 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 		{
 			/*declarations for guidances case*/
 			int *operands_list = (int*)malloc(LINE_MAX_LENGTH * sizeof(int)); 			
-			int i = 0, source_code_flag = on, lines_counter = 0, type_of_line = 0, half_byte = 2; 
+			int i = 0, source_code_flag = on, lines_counter = 0, type_of_line = 0, half_byte = 2;			 
 			long curr_adress = adress;			
-	
-			int num_of_operands =  to_ascii_list_operands(operands, operands_list); 
+	 		int num_of_operands =  to_ascii_list_operands(operands, operands_list, line_number);
 
+			if(!operands_list){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
 			/*go through the whole operands*/
 			for(i = 0; i < num_of_operands; i++ )
 			{	
 				/*create the temporary line*/
 				temp = (dataImg*)malloc(sizeof(dataImg));
-				if(!temp){print_errors(ALLOCATION_ERROR, curr_adress);}
+				if(!temp){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
 				
 				/*add the machine code*/
-				type_of_line = guidance_binary_lines(temp -> machineCode, key_word, operands_list[i]);
+				type_of_line = guidance_binary_lines(temp -> machineCode, key_word, operands_list[i], currLine, line_number);
 
 				/*add the source code*/
 				if(source_code_flag == on)/*if it's the first table's line of the guidances line*/
@@ -115,6 +116,7 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 	/*adds the symbol and the value*/
 	strcpy(curr_symbol_line -> symbol, label);
 	
+	
 	/*adds the arrtibutes*/
 	switch(type_of_sentence)
 	{
@@ -139,6 +141,7 @@ symLine *add_to_symbol_table(char *label, long adress, int type_of_sentence)
 	curr_symbol_line -> next = NULL;
  	return curr_symbol_line;
 }/*END add_to_symbol_table*/
+
 
 void connect_adresses(dataImg *guidance_table_ptr, long last_ic)
 {
@@ -178,8 +181,10 @@ void free_data_image_nodes(dataImg* head_data_image)
 
 }/*END free_data_image_nodes()*/
 
-/*-----------------delete from here down------------*/
+ 
 
+/*-----------------------not in use--------------------------*/
+/*---------unless you want to see the prints-----------------*/
 
 void symbol_table_print(symLine *symbol_table_head)
 {	
@@ -191,7 +196,7 @@ void symbol_table_print(symLine *symbol_table_head)
 	}
 	putchar('\n');
 
-}
+}/*END symbol_table_print()*/
 
 
 void data_image_print(dataImg *head)
@@ -204,4 +209,4 @@ void data_image_print(dataImg *head)
 	}
 	putchar('\n');
 
-}
+}/*END data_image_print()*/
