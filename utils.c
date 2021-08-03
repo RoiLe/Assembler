@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "globals.h" 
 #include "utils.h"
+#include "exeptions.h"
 
 
 int classification_of_sentence(char* curr_line)
@@ -13,7 +14,7 @@ int classification_of_sentence(char* curr_line)
 	int i = 0;
 	
 	if(curr_line[i] == '\0'){return EMPTY_LINE;}
-	/*printf("curr line: %s\n", curr_line);*/
+	
 	/*check if there is a label*/
 	while(curr_line[i] != '\0')
 	{
@@ -64,18 +65,18 @@ char *revese_string(char* str)
 }/*END revese_string()*/
 
 
-void get_commands(char *curr_line, char* label, char* key_word, char* operands)
+void get_commands(char *curr_line, char* label, char* key_word, char* operands, int number_line)
 {
 	/*declarations*/
 	enum places {first = 0, second, third};
-	int i = 0, label_flag = off, temp_string_length = 0;
+	int i = 0, label_flag = off, temp_string_length = 0, none = 0;
 	char temp_curr_line[LINE_MAX_LENGTH], temp_string[LINE_MAX_LENGTH];
     	
 	strcpy(temp_curr_line, curr_line);
 	strcat(temp_curr_line, "\0");
 
 		/*--get the first field--*/
-		PRM_WHITE_SPACE_SKIP;
+		CURR_LINE_WHITE_SPACE_SKIP;
 		while(temp_curr_line[i] != ' ' && temp_curr_line[i] != '\n' && temp_curr_line[i] != '\t' && temp_curr_line[i] != ':')
 		{
 			temp_string[temp_string_length] = temp_curr_line[i];
@@ -90,8 +91,10 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 			label_flag = on;
 			strcpy(label, temp_string);
 			temp_string[0] = '\0';
+			if(temp_string_length > LABEL_MAX_LENGTH){print_errors(LENGTH_LABEL_ERROR, number_line, &none, NULL);}
 			temp_string_length = 0;
 			i++;
+		
 		}/*end label scenario*/
 
 			/*key word scenario*/
@@ -103,7 +106,11 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 		}/*end key word scenario*/
 		
 		/*--get the second field--*/
-		PRM_WHITE_SPACE_SKIP;	
+		CURR_LINE_WHITE_SPACE_SKIP;
+
+		if(temp_curr_line[i] == ':')
+		{print_errors(SYNTAX_ERROR, number_line, &none, curr_line) ;}
+	
 			/*key word scenario*/	
 		if (label_flag == on)
 		{			
@@ -126,7 +133,7 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 				temp_string[temp_string_length] = temp_curr_line[i];
 				temp_string_length++;
 				i++;
-				PRM_WHITE_SPACE_SKIP;				
+				CURR_LINE_WHITE_SPACE_SKIP;				
 			}
 			temp_string[temp_string_length] = '\0';
 			
@@ -142,14 +149,14 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands)
 			/*operands scenario*/
 		if (label_flag == on && strcmp("stop", key_word))
 		{
-			PRM_WHITE_SPACE_SKIP;
+			CURR_LINE_WHITE_SPACE_SKIP;
 			
 			while(temp_curr_line[i] != '\0')
 			{
 				temp_string[temp_string_length] = temp_curr_line[i];
 				temp_string_length++;
 				i++;
-				PRM_WHITE_SPACE_SKIP;		
+				CURR_LINE_WHITE_SPACE_SKIP;		
 			}
 			
 			temp_string[temp_string_length] = '\0';	
@@ -164,8 +171,10 @@ int get_instruction_type(char *key_word, int *curr_opcode, int *curr_funct)
 {
 	/*declarations*/
 	/*sizes*/
-	int i, num_of_R_logic = 5, num_of_R_copy = 3, num_of_I_logic = 5, num_of_I_branch = 4, num_of_I_store_load = 6, num_of_J_special = 4;
-
+	int i, num_of_R_logic = 5, num_of_R_copy = 3, num_of_I_logic = 5, num_of_I_branch = 4,
+	num_of_I_store_load = 6, num_of_J_special = 4;
+		
+	
 	/*key word arrays*/
 	const char *(R_logic_key_word[]) = {"add", "sub", "and", "or", "nor"};	
 	const char *(R_copy_key_word[]) = {"move", "mvhi", "mvlo"};
@@ -181,6 +190,7 @@ int get_instruction_type(char *key_word, int *curr_opcode, int *curr_funct)
  	const int R_opcode_array[] = {OP_ADD, OP_SUB, OP_AND, OP_OR, OP_NOR, OP_MOVE, OP_MVHI, OP_MVLO};
 	const int I_opcode_array[] = {OP_ADDI, OP_SUBI, OP_ANDI, OP_ORI, OP_NORI, OP_BNE, OP_BEQ, OP_BLT, OP_BGT, OP_LB, OP_SB, OP_LW, OP_SW, OP_LH, OP_SH};
 	const int J_opcode_array[] = {OP_JMP,OP_LA,OP_CALL ,OP_STOP};
+
 
 	/*All possible scenarios*/
 	for(i = 0; i < num_of_R_logic; i++)
@@ -239,9 +249,10 @@ int get_instruction_type(char *key_word, int *curr_opcode, int *curr_funct)
 		}
 	}
 	
-	/*the key word didn't found*/
+	/*the key word didn't found*/	
 	return FALSE;
 }/*END  get_key_word_type();*/
+
 
 int get_guidance_type(char *key_word)
 {
@@ -259,15 +270,15 @@ int get_guidance_type(char *key_word)
 }/*END get_guidance_type()*/
 
 
-int to_ascii_list_operands(char* operands, int *the_list)
+int to_ascii_list_operands(char* operands, int *the_list, int number_line)
 {
 	/*declarations*/
-	int i, quote_flag = off, operands_counter = 0, comma_flag = off,minus_flag = off, temp_num = 0; 
+	int i, quote_flag = off, operands_counter = 0, comma_flag = off,minus_flag = off, temp_num = 0, none; 
 
 	/*check the quotes*/
 	for (i = 0; i < strlen(operands); i++)	
 	{
-		WHITE_SPACE_SKIP;
+		OPERANDS_WHITE_SPACE_SKIP;
 		if(operands[i] == '"')
 		{
 			quote_flag = on;
@@ -289,17 +300,18 @@ int to_ascii_list_operands(char* operands, int *the_list)
 				break;			
 			}
 			the_list[operands_counter++] = operands[i];
-			WHITE_SPACE_SKIP;
+			OPERANDS_WHITE_SPACE_SKIP;
 		}
 		the_list[operands_counter++] = 0;/*adds zero line.*/
+		if(quote_flag == on){print_errors(SYNTAX_ERROR, number_line, &none, operands);}
 	/*the .db .dh.dw scenario.*/
 	}else if((operands[i] >= '0' && operands[i] <= '9')){		
 		for (; i < strlen(operands);)/*continue from the place that we done in the last loop*/
 		{
-			WHITE_SPACE_SKIP;	
+			OPERANDS_WHITE_SPACE_SKIP;	
 			if(operands[i] == ',')
 			{	
-				if(comma_flag == off){printf("ERROR: there is no comma in the right place");}
+				if(comma_flag == off){print_errors(SYNTAX_ERROR, number_line, &none, operands);}
 				comma_flag = off;
 				i++;
 			}
@@ -317,7 +329,7 @@ int to_ascii_list_operands(char* operands, int *the_list)
 				the_list[operands_counter] = temp_num;/*update the number to the list*/
 				operands_counter++;
 				temp_num = 0;	
-				WHITE_SPACE_SKIP;	
+				OPERANDS_WHITE_SPACE_SKIP;	
 			}					
 
 		}/*end of for loop*/	
@@ -331,6 +343,7 @@ int to_ascii_list_operands(char* operands, int *the_list)
 
 void get_last_field(char *operands, char* label)
 {
+	/*declarations*/
 	int i = 0, end_array = 0;
 	char *p = strtok (operands, " ,\t\n");
    	char *array[3];
@@ -350,19 +363,35 @@ void get_last_field(char *operands, char* label)
 
 
 int compare_strings(char *str1, char *str2){
+	/*declaration*/
 	int i = 0;
+
+	/*if one of them is NULL*/
 	if(str1 == NULL || str2 == NULL){return FALSE;}
+
+	/*as long as both are not over yet*/
 	while (str1[i] != '\0' && str2[i] != '\0')
 	{
 		if(str1[i] !=  str2[i]){return FALSE;}
 		i++;
-	}
+	}/*end while loop*/
 
+	/*equals*/
 	return TRUE;
 }/*END compare_strings() */
 
 
+long check_the_label_exist(symLine *symbol_table_head, char *label){
+	/*go through the whole symbol table */
+	while(symbol_table_head != NULL)
+	{
+		/*if the label exist*/
+		if(!strcmp(symbol_table_head -> symbol, label)){return symbol_table_head -> value;}
+		symbol_table_head = symbol_table_head -> next; 
+	}/*end while loop*/
 
+	return FALSE;
+}/*END check_the_label_exist()*/
 
 
 
