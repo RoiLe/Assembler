@@ -1,6 +1,8 @@
 #ifndef BINARY_H
 #define BINARY_H
 
+#define ZERO 48
+#define NINE 57
 #define MIN_SIGNED_BYTE -128
 #define MAX_SIGNED_BYTE 127
 #define MIN_SIGNED_HALF_WORD -32768
@@ -45,7 +47,7 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands,
 					11111111111111111111111111110100
 	
 */
-int guidance_binary_lines(char *machineCode,char *key_word, long data, char *currLine, int line_number);
+void guidance_binary_lines(char *machine_code,char *key_word, long data, char *currLine, int line_number, int type_of_guidance);
 
 
 /*
