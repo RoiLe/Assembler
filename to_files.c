@@ -31,6 +31,7 @@ void outputs(symLine *symbol_table_head, DI_ptr data_image_head, long ic, long d
 	/*instruction lines -> number of bytes */
 	ic = ic - IC;	
 
+
 	/*the object file*/	
 	object_file(data_image_head, ic, dc, the_name);
 
@@ -39,7 +40,7 @@ void outputs(symLine *symbol_table_head, DI_ptr data_image_head, long ic, long d
 
 	/*the entry file*/
 	entry_file(symbol_table_head, the_name);
-
+	
 
 }/*END outputs()*/
 
