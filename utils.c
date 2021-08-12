@@ -163,6 +163,7 @@ void get_commands(char *curr_line, char* label, char* key_word, char* operands, 
 			strcpy(operands, temp_string);
 			temp_string[0] = '\0';		
 		}
+
 }/*END get_commands();*/
 
 
@@ -263,9 +264,10 @@ int get_guidance_type(char *key_word)
 	/*go through the whole possible options*/
 	for(i = 0; i < num_of_types; i++)
 	{
-		if(!strcmp(key_word,guidance_type[i]))return i+1; 
+		if(!strcmp(key_word,guidance_type[i]))return i + 1; 
 
 	}
+	
 	return FALSE;
 }/*END get_guidance_type()*/
 
