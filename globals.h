@@ -5,9 +5,11 @@
 #define MAX_ARRTIBUTE_LENGTH 15 
 #define KEY_WORD_MAX_LENGTH 10  
 #define LABEL_MAX_LENGTH 31  
-#define MACHINE_CODE_LENGTH 40  
-         
-                    
+#define MACHINE_CODE_LENGTH 40 
+#define MAX_REGISTER 31  
+#define MIN_REGISTER 0  
+    
+                              
 enum file_succeeded {  
 	SUCCESSED = 0, FAILED = 1    
 }; 
@@ -18,20 +20,18 @@ enum flags {
  
 typedef enum booleans {
 	FALSE = 0, TRUE = 1
-} bool;
- 
+} bool; 
+   
     
 typedef enum type_of_instruction{
 
 	R_LINE_LOGIC = 1,
-	R_LINE_COPY,
-
-	 
+	R_LINE_COPY, 
+	
 	I_LINE_LOGIC,
 	I_LINE_BRANCH,
 	I_LINE_SORE_LOAD, 
 
-	
 	J_LINE_SPECIAL
 
 }type_ins;
