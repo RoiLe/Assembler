@@ -35,61 +35,71 @@ void print_errors(int error_type, int num_of_line, int *exeptions, char *note)
 
 		/*line*/
 		case SYNTAX_ERROR: 
-            		printf("ERROR: line %d: syntax error <%s>\n", num_of_line, note);
+			/*remove the '\n' [enter]*/
+			if(note[strlen(note) - 1] == '\n')
+			{
+				note[strlen(note) - 1] = '\0';
+			}
+            		printf("line %d: syntax error <%s>\n", num_of_line, note);
 			num_of_errors++;
             		break;
 
 		case TOO_LONG_LINE_COMMAND_ERROR: 
-            		printf("ERROR: line %d: too long line.\n", num_of_line);
+            		printf("line %d: too long line.\n", num_of_line);
 			num_of_errors++;
             		break;
 
 		
 		/*label*/ 
 		case LENGTH_LABEL_ERROR:
-			printf("ERROR: line %d: too long label.\n", num_of_line);
+			printf("line %d: too long label.\n", num_of_line);
 			num_of_errors++;
             		break;
       		
 		case LABEL_DONT_EXIST: 
-            		printf("ERROR: line %d: '%s' label not founded\n", num_of_line, note);
+            		printf("line %d: '%s' label not founded\n", num_of_line, note);
 			num_of_errors++;
             		break;
 		
 		case LABEL_ALREADY_EXIST_ERROR:
-			printf("ERROR: line %d: the label '%s' already exist.\n",  num_of_line, note);
+			printf("line %d: the label '%s' already exist.\n",  num_of_line, note);
 			num_of_errors++;
             		break;
 		
  		case LABEL_SYSTEM_WORD_ERROR:
-			printf("ERROR: line %d: The label '%s' is belongs to the system.\n",  num_of_line, note);
+			printf("line %d: The label '%s' is belongs to the system.\n",  num_of_line, note);
 			num_of_errors++;
             		break;
 		
 
 		/*operands*/
 		case TOO_MANY_OPERANDS:  
-            		printf("ERROR: line %d: extraneous operand.\n", num_of_line);
+            		printf("line %d: extraneous operand.\n", num_of_line);
+			num_of_errors++;
+            		break;
+
+		case FEWER_OPERANDS:  
+            		printf("line %d: few operands than expected.\n", num_of_line);
 			num_of_errors++;
             		break;
 
 		case REGISTER_DONT_EXIST: 
-            		printf("ERROR: line %d: register dont exist.\n", num_of_line);
+            		printf("line %d: register dont exist.\n", num_of_line);
 			num_of_errors++;
             		break;
 		
 		case KEY_WORD_INCORRECT:
-			if(num_of_errors == CORRECT){printf("ERROR:line %d: key word '%s' is incorrect.\n", num_of_line, note);}
+			printf("line %d: key word '%s' is incorrect.\n", num_of_line, note);
 			num_of_errors++;
             		break;
 
 		case EXTERNAL_ENTRY_TOGETHER_ERROR: 
-            		printf("ERROR: line %d: '%s' already used.\n", num_of_line, note);
+            		printf("line %d: '%s' already used.\n", num_of_line, note);
 			num_of_errors++;
             		break;
 
 		case SIZE_NUMBER_ERROR:
-			printf("ERROR: line %d: exceptional numeric value.\n", num_of_line);
+			printf("line %d: exceptional numeric value.\n", num_of_line);
 			num_of_errors++;
             		break;
 
