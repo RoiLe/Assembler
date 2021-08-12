@@ -85,7 +85,7 @@ void add_missed_values_to_data_image(DI_ptr instruction_head, symLine *symbol_ta
 	/*copy of the current operands*/	
 	strcpy(curr_operands, operands);
 	strcat(curr_operands, "\0");	
-	
+
 	switch(instruction_type)
 	{
 		case I_LINE_BRANCH:
@@ -101,14 +101,15 @@ void add_missed_values_to_data_image(DI_ptr instruction_head, symLine *symbol_ta
 
 				/*change the machine code field.*/
 				change_the_immed(instruction_head, immed_value, current_adress, key_word, curr_operands, instruction_type, opcode, number_line);
-			}else{print_errors(LABEL_DONT_EXIST, number_line, &none, operands);}
+			}else{print_errors(SYNTAX_ERROR, number_line, &none, curr_line);}
 
 			break;
 		}/*end I_LINE_BRANCH case*/
 		case J_LINE_SPECIAL:
-		{			
-			get_last_field(operands, label);
-			
+		{	
+			if(operands[0] != '\0')	/*just stop with no label*/	
+			{get_last_field(operands, label);}
+		
 			if(!strcmp(key_word, "jmp"))
 			{
 				/*the reg flag*/
