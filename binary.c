@@ -11,7 +11,7 @@
 	Creates the structure of every line in integer
 	return the current R line in R_struct
 */
-R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number);
+R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number, int key_word_type);
 
 
 void instruction_binary_line(char *machineCode, char *key_word , char *operands,  int line_number)
@@ -22,15 +22,15 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands,
 	int curr_opcode = 0, curr_funct = 0;
 	  
 	int type_of_key_word = get_instruction_type(key_word, &curr_opcode, &curr_funct);
-		
-	if(!type_of_key_word){ print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);}
+	
+	if(!type_of_key_word){print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);}
 	
 	switch(type_of_key_word)/*call to the correct func depened the type*/
 	{
 		case R_LINE_LOGIC: case R_LINE_COPY: 
 
 			/*create here the struct of R instruction.. */
-			curr_R_line = create_R_instruction(key_word, operands, curr_opcode, curr_funct, line_number);
+			curr_R_line = create_R_instruction(key_word, operands, curr_opcode, curr_funct, line_number, type_of_key_word);
 
 			/*lets make the structure binary.. */
 			int_to_binary(machineCode, curr_R_line.size,WORD);
@@ -57,15 +57,18 @@ void instruction_binary_line(char *machineCode, char *key_word , char *operands,
 }/*END createInstruction()*/
 
 
-int guidance_binary_lines(char *machine_code,char *key_word, long data, char *currLine, int line_number)
+void guidance_binary_lines(char *machine_code,char *key_word, long data, char *currLine, int line_number, int type_of_guidance)
 {
 	/*declarations*/
 	DB_CODE curr_db_asciz;
 	DH_CODE	curr_dh;
 	DW_CODE curr_dw;
 
-	int type_of_guidance = get_guidance_type(key_word), none;	
+	int /*type_of_guidance = get_guidance_type(key_word), */none;	
 
+	/*printf("current line: %s\n", currLine);
+	printf("type: %d\n", type_of_guidance);*/
+	/*if(type_of_guidance == FALSE){print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);}*/
 	switch(type_of_guidance)
 	{ 
 		case DB:
@@ -99,11 +102,11 @@ int guidance_binary_lines(char *machine_code,char *key_word, long data, char *cu
 			/*lets make the structure binary.. */
 			int_to_binary(machine_code, curr_dw.size, WORD);
 			break;
-		default:
-			print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);
+		/*default:
+			print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);*/
 	}/*end of switch*/
 
-	return type_of_guidance;
+	/*return type_of_guidance;*/
 }/*END create_guidance_code()*/
 
 
@@ -132,10 +135,10 @@ void int_to_binary(char *machine_code, int curr, int num_of_byte)
 }/*END int_to_binary()*/
 
 
-R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number)
+R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr_funct,  int line_number, int key_word_type)
 {	
 	/*declarations*/
-	int i = 0 , comma_flag = off, none = 0,
+	int i = 0 , comma_flag = off, none = 0, logic_aritmetic_operands = 3, copy_operands = 2, 
 	operands_counter = 0, temp_rd = 0, temp_rt = 0, temp_rs = 0,
 	num_of_reg = -1, diff_to_int = 48;	
 	R curr;
@@ -157,20 +160,21 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 			comma_flag = on;
 			operands_counter++;
 
-			if(operands[i] >= 48 && operands[i] <= 57)
+			/*operands between 0 to 9.*/
+			if(operands[i] >= ZERO && operands[i] <= NINE)
 			{
 				/*check if its two digit number.*/
-				 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+				 if(operands[i + 1] >= ZERO && operands[i + 1] <= NINE)
 				{
 					num_of_reg = ((operands[i] - diff_to_int) * 10) + (operands[i + 1] - diff_to_int);
-					i = i+2;
+					i = i + 2;
 				}else{
 					num_of_reg = operands[i] - diff_to_int;
 					i++;
 				}
 			}else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 
-			if(num_of_reg >= 0 && num_of_reg <= 31)
+			if(num_of_reg >= MIN_REGISTER && num_of_reg <= MAX_REGISTER)
 			{
 				switch(operands_counter)/*depends how many operands there is.*/
 				{
@@ -182,24 +186,39 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 						else{temp_rt = num_of_reg;}
 						break;
 					case 3:
-						if(curr.instruct.opcode == OP_MOVE){print_errors(SYNTAX_ERROR, line_number, &none, operands);}
+						if(curr.instruct.opcode == OP_MOVE)
+						{
+							print_errors(SYNTAX_ERROR, line_number, &none, operands);
+							return curr;
+						}
 						else{temp_rd = num_of_reg;}	
 						break;
 					default:
 						print_errors(TOO_MANY_OPERANDS, line_number, &none, NULL);
+						return curr;
 
 				}/*end switch*/
 				num_of_reg = -1;
 			}else{print_errors(REGISTER_DONT_EXIST, line_number, &none, NULL);}
 		}else{
 			if(operands[i++] == ','){comma_flag = off;}
-			else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
-		}
-	
+			else{
+				print_errors(SYNTAX_ERROR, line_number, &none, operands);
+				return curr;
+			}
+		}	
 		OPERANDS_WHITE_SPACE_SKIP;
 	 	
 	
 	}/*end for loop*/		
+	
+	/*few operands than what exepted*/
+	if((key_word_type == R_LINE_LOGIC && operands_counter < logic_aritmetic_operands) ||
+	(key_word_type == R_LINE_COPY && operands_counter < copy_operands))
+	{print_errors(FEWER_OPERANDS, line_number, &none, NULL);}
+	
+	/*there is a comma after the line.*/	
+	if(comma_flag == off){print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 
 	/*adds the final values.*/
 	curr.instruct.rd = temp_rd;
@@ -213,13 +232,12 @@ R create_R_instruction(char *key_word, char *operands, int curr_opcode, int curr
 }/*END create_R_instruction()*/
  
 
-I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed, int line_number)
+I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_opcode, long curr_immed, int line_number )
 {
 	/*declarations*/
 	I curr;
-	int i, temp_rs = 0, temp_rt = 0, comma_flag = off, minus_flag = off,
-	num_of_reg = 0, operands_counter = 0,  diff_to_int = 48, none = 0;
-	unsigned int temp_immed = 0;
+	int i, temp_rs = 0, temp_rt = 0, comma_flag = off, minus_flag = off, num_of_operands =2,
+	num_of_reg = 0, operands_counter = 0,  diff_to_int = 48, none = 0, temp_immed = 0;
 
 	
 	/*add the correct opcode. */
@@ -236,21 +254,24 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 			comma_flag = on;
 			operands_counter++;
 			
-			if(operands[i] >= 48 && operands[i] <= 57)
+			if(operands[i] >= ZERO && operands[i] <= NINE)
 			{
 				/*check if its two digit number.*/
-				 if(operands[i + 1] >= 48 && operands[i + 1] <= 57)
+				 if(operands[i + 1] >= ZERO && operands[i + 1] <= NINE)
 				{
-					num_of_reg = ((operands[i] - diff_to_int)*10) + (operands[i + 1] - diff_to_int);
+					num_of_reg = ((operands[i] - diff_to_int) * 10) + (operands[i + 1] - diff_to_int);
 					i = i+2;
 				}else{
 					num_of_reg = operands[i] - diff_to_int;
 					i++;
 				}
-			}else{print_errors(SYNTAX_ERROR, line_number, &none, operands);}
+			}else{
+				print_errors(SYNTAX_ERROR, line_number, &none, operands);
+				return curr;
+			}
 
 			/*the register exist. */
-			if(num_of_reg >= 0 && num_of_reg <= 31)
+			if(num_of_reg >= MIN_REGISTER && num_of_reg <= MAX_REGISTER)
 			{
 				switch(operands_counter)/*depends how many operands there is*/
 				{
@@ -261,7 +282,8 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 						temp_rt = num_of_reg;
 						break;
 					default:
-						print_errors(TOO_MANY_OPERANDS, line_number, &none, NULL);			
+						print_errors(TOO_MANY_OPERANDS, line_number, &none, NULL);
+						return curr;			
 
 				}/*end switch*/
 				num_of_reg = -1;
@@ -276,10 +298,10 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 			/*create the immed number value*/
 			else if(comma_flag == off)
 			{
-				while(operands[i] == '-' ||(operands[i] >= '0' && operands[i] <= '9'))
+				while(operands[i] == '-' ||(operands[i] >= ZERO && operands[i] <= NINE))
 				{
 					if(operands[i] == '-'){minus_flag = on;}
-					else{temp_immed = operands[i] -	48 + (temp_immed * 10);}
+					else{temp_immed = operands[i] -	ZERO + (temp_immed * 10);}
 					i++;
 				}
 				comma_flag = on;
@@ -298,13 +320,25 @@ I create_I_instruction(char *key_word, char *operands, int type_of_I, int curr_o
 				temp_immed = curr_immed;
 				i++;
 			}else{
-				print_errors(SYNTAX_ERROR, line_number, &none, operands);					
+				print_errors(SYNTAX_ERROR, line_number, &none, operands);
 				i++;
+				return curr;					
 			}			
 		}
 		OPERANDS_WHITE_SPACE_SKIP;
 
 	}/*end for loop*/
+
+	/*few operands than what exepted*/
+	if(operands_counter < num_of_operands)
+	{print_errors(FEWER_OPERANDS, line_number, &none, NULL);}
+
+	/*check the size of immed value*/
+	if(temp_immed > MAX_SIGNED_HALF_WORD|| temp_immed < MIN_SIGNED_HALF_WORD)
+	{print_errors(SIZE_NUMBER_ERROR, line_number, &none, NULL);}
+
+	/*there is a comma after the line.*/	
+	if(comma_flag == off){print_errors(SYNTAX_ERROR, line_number, &none, operands);}
 
 	/*adds the final values.*/
 	curr.instruct.immed = temp_immed;	
@@ -331,16 +365,17 @@ J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adr
 		if(operands[i] == '$'){temp_reg = on;}
 		i++;
 
-		if(operands[i + 1] >= 48 && operands[i + 1] <= 57)/*two digits number*/
+		if(operands[i + 1] >= ZERO && operands[i + 1] <= NINE)/*two digits number*/
 		{
-			num_of_reg = ((operands[i] - 48) * 10) + (operands[i + 1] - 48);
-			i = i+2;
+			num_of_reg = ((operands[i] - ZERO) * 10) + (operands[i + 1] - ZERO);
+			i = i + 2;
 		}else{/*one digit number*/
-			num_of_reg = operands[i] - 48;
+			num_of_reg = operands[i] - ZERO;
 			i++;
 		}
 
-		if(temp_reg == on && (num_of_reg > 31 || num_of_reg < 0))
+		/*the register exist*/
+		if(temp_reg == on && (num_of_reg > MAX_REGISTER || num_of_reg < MIN_REGISTER))
 		{print_errors(REGISTER_DONT_EXIST, line_number, &none, operands);}
 		
 		switch(curr_opcode)
@@ -362,8 +397,9 @@ J create_J_instruction(char *key_word, char *operands, int curr_opcode, long adr
 		}/*end of switch*/	
 
 		OPERANDS_WHITE_SPACE_SKIP;
-
+		
 	}/*end of for loop*/
+	
 
 	/*adds the final values.*/
 	curr.instruct.address = temp_address;
