@@ -36,21 +36,28 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 			/*declarations for guidances case*/
 			int *operands_list = (int*)malloc(LINE_MAX_LENGTH * sizeof(int)); 			
 			int i = 0, source_code_flag = on, lines_counter = 0, type_of_line = 0, half_byte = 2;			 
-			long curr_adress = adress;			
+			long curr_adress = adress;	
+		
 	 		int num_of_operands =  to_ascii_list_operands(operands, operands_list, line_number);
 
+			/*allocation problem*/
 			if(!operands_list){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
+
+			/*gets and checks the guidance line*/
+			type_of_line = get_guidance_type(key_word);
+			if(type_of_line == FALSE){print_errors(KEY_WORD_INCORRECT, line_number, off, key_word);}
+
 			/*go through the whole operands*/
 			for(i = 0; i < num_of_operands; i++ )
 			{	
-				/*create the temporary line*/
+				/*creates the temporary line*/
 				temp = (dataImg*)malloc(sizeof(dataImg));
 				if(!temp){print_errors(ALLOCATION_ERROR, off, &none, NULL);}
 				
-				/*add the machine code*/
-				type_of_line = guidance_binary_lines(temp -> machineCode, key_word, operands_list[i], currLine, line_number);
+				/*adds every operand to the machine code*/
+				guidance_binary_lines(temp -> machineCode, key_word, operands_list[i], currLine, line_number, type_of_line);
 
-				/*add the source code*/
+				/*adds the source code*/
 				if(source_code_flag == on)/*if it's the first table's line of the guidances line*/
 				{
 					strcpy(temp -> sourceCode, currLine); 
@@ -73,6 +80,7 @@ int data_image_line_create(DI_ptr *curr_line_ptr, DI_ptr *tail_ptr, char *currLi
 					temp -> adress = curr_adress + lines_counter;
 					curr_adress += NEXT_ADRESS - 1;
 					break;
+				
 				}/*end switch*/
 				
 
