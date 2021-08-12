@@ -1,0 +1,4 @@
+line 19: syntax error <	bne $31,$9, LOOP>
+line 30: 'K' already used.
+
+'errors2.as' file failed!
