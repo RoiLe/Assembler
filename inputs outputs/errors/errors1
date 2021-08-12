@@ -1,0 +1,10 @@
+line 5: syntax error <$3,$5,$9,>
+line 8: extraneous operand.
+line 14: register dont exist.
+line 20: few operands than expected.
+line 27: the label 'LOOP' already exist.
+line 30: syntax error <"aBcd>
+line 33: key word '.dvb' is incorrect.
+line 36: exceptional numeric value.
+
+'errors1.as' file failed!
