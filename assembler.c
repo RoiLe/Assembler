@@ -12,7 +12,6 @@
 
 int main(int argc, char *argv[]){
 	int success = CORRECT, i;
-	/*char *the_assembler = "assembler";*/
 
 	if (argc == 1)
 	{
@@ -25,7 +24,7 @@ int main(int argc, char *argv[]){
 		success = proccess_program(argv[i]);/*the proccess done succussefuly.*/
 		if(success == FAILED)
 		{
-			printf("'%s' file failed!\n", argv[i]);
+			printf("\n'%s' file failed!\n\n", argv[i]);
 		}
 	} /*end for loop*/ 	
 
@@ -49,7 +48,7 @@ int proccess_program(char* file)
 	/* checks the file name and open it if it's ok... */
 	error_type = name_check_file(file, the_name);		
 	print_errors(error_type, off, &none, the_name);
-	
+
 	/*open the file*/
 	if(exeptions == CORRECT)
 	{
@@ -81,18 +80,18 @@ int proccess_program(char* file)
 		/*line length is too long */
 		if(strlen(currLine) > LINE_MAX_LENGTH)
 			{print_errors(TOO_LONG_LINE_COMMAND_ERROR, currentNumberLine, &none, NULL);}
-
+	
 		/*not an empty or note line*/
+		currentNumberLine++;
 		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)		
 		{	
 			/*declaretion*/
 			char temp_curr_line[LINE_MAX_LENGTH];
 			strcpy(temp_curr_line, currLine);
-			currentNumberLine++;
 
 			/*get the data from the current line*/
 			get_commands(temp_curr_line, label, key_word, operands, currentNumberLine);/*fill the label, the key word and the data of the line.*/
-		
+				
 			/*check the label*/
 			if(label[0] != '\0')
 			{
@@ -174,21 +173,26 @@ int proccess_program(char* file)
 		
    	}/*END while(!feof(assembly_code)) loop */
 		
-	
+			
 	/*stop here if there is problem until now*/
 	print_errors(GET_NUM_OF_ERRORS, off, &exeptions, NULL);
 	if(exeptions != CORRECT)
 	{
 		print_errors(EQUATE_TO_ZERO, off, off, NULL);
+		dc = DC;
 		return FAILED;
 	}	
 	
 	/*order the adresses of the guidances lines after the instructions lines*/
-	connect_adresses(guidance_head, instruction_tail -> adress);
-
+	if(guidance_head != NULL && instruction_head != NULL)
+	{	
+		connect_adresses(guidance_head, instruction_tail -> adress);
+	
+		
 	/*connect the data images (instruction and then guidances)*/
-	instruction_tail -> next = guidance_head;
-
+		instruction_tail -> next = guidance_head;
+	}
+	
 	
 	/*
 		print the first pass table:	
@@ -199,7 +203,8 @@ int proccess_program(char* file)
 	*/
 
 	/*complete the values of data attributes in symbol table*/
-	insert_values_to_data_attribute(symbol_table_head, instruction_head);
+	if(symbol_table_head != NULL && instruction_head != NULL)
+	{insert_values_to_data_attribute(symbol_table_head, instruction_head);}
 
 	/*
 		the first pass done!  if it's pass in success, 
@@ -207,7 +212,6 @@ int proccess_program(char* file)
 	*/
 	rewind(assembly_code);
 	currentNumberLine = 0;
-	
 	while(!feof(assembly_code)) 
 	{
 		char *currLine = (char *)calloc(LINE_MAX_LENGTH, sizeof(char));
@@ -217,15 +221,15 @@ int proccess_program(char* file)
 		typeOfSentence = classification_of_sentence(currLine);
 
 		/*not an empty or note line*/
+		currentNumberLine++;
 		if(typeOfSentence == INSTRUCTION_LINE || typeOfSentence == GUIDANCE_LINE)		
 		{
 			char temp_curr_line[LINE_MAX_LENGTH];
 			strcpy(temp_curr_line, currLine);
-			currentNumberLine++;
 
 			/*fill the label, the key word and the data of the line.*/
 			get_commands(temp_curr_line, label, key_word, operands, currentNumberLine);		
-
+		
 			if(typeOfSentence == GUIDANCE_LINE && get_guidance_type(key_word) == ENTRY)
 			{
 				/*add the entry value*/
@@ -237,7 +241,7 @@ int proccess_program(char* file)
 		}
 		free(currLine);
 	}/*end of while loop*/
-	
+
 	/*close the assembley code file*/
 	fclose(assembly_code);
 
@@ -246,6 +250,7 @@ int proccess_program(char* file)
 	if(exeptions != CORRECT)
 	{
 		print_errors(EQUATE_TO_ZERO, off, off, NULL);
+		dc = DC;
 		return FAILED;
 	}	
 
@@ -255,8 +260,8 @@ int proccess_program(char* file)
 		printf("\n\n\t%s - second pass tables\n\n", the_name);
 		data_image_print(instruction_head);
 		symbol_table_print(symbol_table_head);
-	*/
 	
+	*/
 	/*
 		the second pass done 
 		if it's pass in success we continue now to the  
@@ -265,17 +270,16 @@ int proccess_program(char* file)
 	
 	/*output files*/
 	outputs(symbol_table_head, instruction_head, ic, dc, the_name);
-	/*printf("file '%s' done\n", the_name);*/
-
+	
 	/*free some nodes*/
-	free_symbol_table_nodes(symbol_table_head);
-	free_data_image_nodes(instruction_head);
+	if(symbol_table_head != NULL){free_symbol_table_nodes(symbol_table_head);} 
+	if(instruction_head != NULL){free_data_image_nodes(instruction_head);}
 
 	/*reset the counters*/
 	ic = IC; 
 	dc = DC;
 	print_errors(EQUATE_TO_ZERO, off, off, NULL);
-
+	
 	return SUCCESSED;
 }/*END proccess_program()*/
 
